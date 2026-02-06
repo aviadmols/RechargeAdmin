@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class PortalOtp extends Model
+{
+    protected $fillable = [
+        'email',
+        'code_hash',
+        'expires_at',
+        'attempts',
+        'consumed_at',
+        'created_ip',
+        'created_user_agent',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+            'consumed_at' => 'datetime',
+        ];
+    }
+}
