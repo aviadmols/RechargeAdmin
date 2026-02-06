@@ -16,7 +16,16 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', (function () {
+        $url = env('DATABASE_URL', env('DB_URL'));
+        if ($url && str_starts_with((string) $url, 'postgres')) {
+            return 'pgsql';
+        }
+        if ($url && (str_starts_with((string) $url, 'mysql') || str_starts_with((string) $url, 'mariadb'))) {
+            return str_starts_with((string) $url, 'mariadb') ? 'mariadb' : 'mysql';
+        }
+        return 'sqlite';
+    })()),
 
     /*
     |--------------------------------------------------------------------------

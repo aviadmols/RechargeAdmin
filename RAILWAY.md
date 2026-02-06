@@ -44,13 +44,15 @@ If you chose **MySQL** instead of PostgreSQL:
 
 In your app service **Variables**, add or update:
 
-| Variable | Description |
-|----------|-------------|
-| `APP_KEY` | Run locally: `php artisan key:generate --show` and paste the value. |
-| `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` |
-| `APP_URL` | Your app URL on Railway, e.g. `https://your-app.up.railway.app` |
-| `DATABASE_URL` | Set automatically if you linked the PostgreSQL/MySQL service (see above). |
+**Checklist – מה חובה מעבר ל-DATABASE_URL (ש-Railway מוסיף):**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ (from Railway) | כבר אצלך – מגיע מחיבור ל-Postgres. |
+| `APP_KEY` | ✅ **חובה** | בלי זה האפליקציה לא עולה. מקומית: `php artisan key:generate --show` והדבק. |
+| `APP_URL` | ✅ **חובה** | כתובת האתר ב-Railway, למשל `https://xxx.up.railway.app`. |
+| `APP_ENV` | מומלץ | `production` |
+| `APP_DEBUG` | מומלץ | `false` |
 
 If you don’t have `DATABASE_URL` (e.g. MySQL with separate variables):
 
@@ -64,27 +66,30 @@ If you don’t have `DATABASE_URL` (e.g. MySQL with separate variables):
 - `SESSION_DRIVER` = `database`.
 - Mail (SMTP) settings if you send OTP emails.
 
-### 4. What runs on deploy
+### 4. What runs on deploy (טבלאות ה-DB נוצרות/מתעדכנות אוטומטית)
 
-The `railway.toml` file defines:
-
-- **preDeployCommand:**  
+- **preDeployCommand** (ב־`railway.toml`):  
   `php artisan config:cache && php artisan migrate --force`  
-  → On every deploy, migrations run so the database (tables) are created or updated automatically.
+  → לפני כל deploy – מיגרציות רצות וכל טבלאות ה-DB נוצרות או מתעדכנות.
 
-- **startCommand:**  
-  `php artisan serve --host=0.0.0.0 --port=${PORT:-8000}`  
-  → The app starts with Laravel’s built-in server.
+- **startCommand** (שירות ה-web):  
+  `php artisan migrate --force && php artisan serve ...`  
+  → גם בהרצה, מיגרציות רצות שוב (למקרה ש-preDeploy דולג), ואז השרת עולה.
 
-So once `DATABASE_URL` (or another DB connection) is set and Railway runs the pre-deploy step, the database and all migration-based configuration are created or updated on each deploy.
+- **Procfile – worker:**  
+  `php artisan migrate --force && php artisan queue:work ...`  
+  → גם ה-worker מריץ מיגרציות בהפעלה, כך שהטבלאות קיימות גם כשרק ה-worker מחובר ל-Postgres.
+
+אחרי ש־`DATABASE_URL` (או חיבור DB אחר) מוגדר, בכל deploy הטבלאות ייווצרו/יתעדכנו אוטומטית.
 
 ### 5. Worker (queue – optional)
 
 If you use the queue (e.g. for OTP emails):
 
 - **+ New → Empty Service** (or “Worker” if available).
-- Connect it to the same repo and set **Start Command:**  
-  `php artisan queue:work --sleep=3 --tries=3`
+- Connect it to the same repo. **Start Command:**  
+  `php artisan migrate --force && php artisan queue:work --sleep=3 --tries=3`  
+  (אם לא מגדירים Start Command, ה-Procfile מריץ את זה אוטומטית – כולל מיגרציות.)
 - Copy the same environment variables (especially `APP_KEY`, `DATABASE_URL`) to the Worker service.
 
 ### 6. Scheduler (cron – optional)
@@ -96,10 +101,18 @@ To run scheduled commands (OTP cleanup, log pruning):
 
 ---
 
+## Troubleshooting: "Pre-deploy command failed"
+
+- **בודקים לוגים:** ב-Railway → Deployments → בחר את ה-deploy שנכשל → **View Logs**. השגיאה המלאה תופיע שם.
+- **אם כתוב ש-APP_KEY חסר:** הוסף ב-Variables את `APP_KEY` (הרץ מקומית `php artisan key:generate --show` והדבק).
+- **אם השגיאה קשורה ל-database:** וודא ש-`DATABASE_URL` מחובר לשירות האפליקציה (Reference מ-Postgres). המיגרציות רצות בשלב ה-**Start** (לא ב-Pre deploy), כך שה-DB אמור להיות זמין.
+
+---
+
 ## Summary
 
-- **Database to add:** PostgreSQL (recommended) or MySQL.
-- **Configuration:** `DATABASE_URL` (or explicit MySQL connection) + `APP_KEY`, `APP_URL`, `APP_ENV=production`, `APP_DEBUG=false`.
-- **Database and tables:** Created/updated automatically on each deploy via `preDeployCommand` in `railway.toml` which runs `php artisan migrate --force`.
+- **Database:** PostgreSQL (recommended) or MySQL; `DATABASE_URL` from Railway.
+- **Required variables:** `APP_KEY`, `APP_URL`, and optionally `APP_ENV=production`, `APP_DEBUG=false`.
+- **Tables:** Created/updated on each deploy in the **start** phase (`php artisan migrate --force` in `railway.toml`).
 
 After the first deploy, log in to the Admin (Filament) and configure the Recharge token and settings in the UI.

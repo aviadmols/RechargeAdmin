@@ -28,10 +28,13 @@ Laravel customer portal for Recharge: passwordless OTP login, order history, and
    php artisan migrate
    ```
 
-4. **Create admin user**
+4. **Create admin user** (needed to log in at `/admin` and set Recharge token)
    ```bash
-   php artisan tinker
-   >>> \App\Models\Admin::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => bcrypt('password')]);
+   php artisan admin:create --email=your@email.com --password=your-secure-password
+   ```
+   Or without options (you will be prompted):
+   ```bash
+   php artisan admin:create
    ```
 
 5. **Frontend**
@@ -40,9 +43,13 @@ Laravel customer portal for Recharge: passwordless OTP login, order history, and
    npm run build
    ```
 
-6. **Recharge**
-   - Log in at `/admin` with the admin user.
-   - Go to Recharge Settings and set your Recharge API token, base URL, and feature toggles.
+6. **Recharge (required for portal to work)**
+   - Open **https://your-domain/admin** (or http://localhost:8000/admin locally).
+   - Log in with the admin email and password from step 4.
+   - In the sidebar, open **Recharge Settings**.
+   - Set **API Token** (from your Recharge dashboard), **Base URL** (e.g. `https://api.rechargeapps.com`), **API Version** (e.g. `2021-11`), and optionally **Store domain**.
+   - Enable the feature toggles you need (cancel, swap, pause, address update), then click **Save**. Use **Test connection** to verify.
+   - After saving, when a user signs in with OTP the app will call Recharge with this token to fetch their data (orders, subscriptions).
 
 7. **Run**
    ```bash

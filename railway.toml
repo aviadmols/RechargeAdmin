@@ -1,13 +1,13 @@
 # Railway – Recharge Customer Portal
 # https://docs.railway.com/reference/config-as-code
+# בכל deploy הטבלאות נוצרות/מתעדכנות אוטומטית (migrate --force).
 
 [build]
 builder = "NIXPACKS"
-# Optional: Railpack may be default; use NIXPACKS if you need PHP 8.3 and Laravel compatibility
 # buildCommand = "composer install --no-dev --optimize-autoloader && npm ci && npm run build"
 
 [deploy]
-# Create/update DB schema on every deploy (uses DATABASE_URL from Railway)
-preDeployCommand = "/bin/sh -c 'php artisan config:cache && php artisan migrate --force'"
-# Run migrate again on start so tables exist even if preDeploy was skipped or failed
-startCommand = "/bin/sh -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}'"
+# Pre-deploy: cache להגדרות (חייב APP_KEY)
+preDeployCommand = "php artisan config:cache"
+# Start: סקריפט שעושה config cache + migrate + serve (משתמש ב-PORT של Railway)
+startCommand = "sh railway-start.sh"

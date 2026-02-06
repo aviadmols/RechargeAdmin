@@ -1,2 +1,3 @@
-web: php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
-worker: php artisan queue:work --sleep=3 --tries=3
+# אותו סקריפט כמו ב-railway.toml – מיגרציות ואז שרת
+web: sh railway-start.sh
+worker: php artisan migrate --force && php artisan queue:work --sleep=3 --tries=3
