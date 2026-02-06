@@ -9,4 +9,5 @@ builder = "NIXPACKS"
 [deploy]
 # Create/update DB schema on every deploy (uses DATABASE_URL from Railway)
 preDeployCommand = "/bin/sh -c 'php artisan config:cache && php artisan migrate --force'"
-startCommand = "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"
+# Run migrate again on start so tables exist even if preDeploy was skipped or failed
+startCommand = "/bin/sh -c 'php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}'"
