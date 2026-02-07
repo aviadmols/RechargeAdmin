@@ -50,7 +50,7 @@ In your app service **Variables**, add or update:
 |----------|----------|-------------|
 | `DATABASE_URL` | ✅ (from Railway) | כבר אצלך – מגיע מחיבור ל-Postgres. |
 | `APP_KEY` | ✅ **חובה** | בלי זה האפליקציה לא עולה. מקומית: `php artisan key:generate --show` והדבק. |
-| `APP_URL` | ✅ **חובה** | כתובת האתר ב-Railway, למשל `https://xxx.up.railway.app`. |
+| `APP_URL` | ✅ **חובה** | כתובת האתר ב-Railway **עם https**, למשל `https://worker-production-03d8.up.railway.app` (מונע Mixed Content). |
 | `APP_ENV` | מומלץ | `production` |
 | `APP_DEBUG` | מומלץ | `false` |
 
@@ -117,9 +117,10 @@ To run scheduled commands (OTP cleanup, log pruning):
 5. הוסף משתנה חדש:
    - **Name:** `DATABASE_PUBLIC_URL`
    - **Value:** ההדבקה של ה-URL הציבורי (מתחיל ב-`postgresql://...`).
-6. **שמור** ועשה **Redeploy** לשירות האפליקציה.
+6. **חשוב:** הוסף את **אותו משתנה** גם לשירות ה-**Worker** (Variables של ה-Worker) – אחרת ה-Worker ימשיך לקרוס עם אותה שגיאה.
+7. **שמור** ועשה **Redeploy** לשני השירותים (Web + Worker).
 
-האפליקציה מוגדרת להעדיף `DATABASE_PUBLIC_URL` על פני `DATABASE_URL`, כך שהחיבור יעבוד דרך הכתובת הציבורית.
+האפליקציה מוגדרת להעדיף `DATABASE_PUBLIC_URL` על פני `DATABASE_URL`. **שני השירותים (Web ו-Worker) חייבים** את `DATABASE_PUBLIC_URL` ב-Variables.
 
 ---
 

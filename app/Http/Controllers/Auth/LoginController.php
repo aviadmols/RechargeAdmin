@@ -22,6 +22,24 @@ class LoginController extends Controller
         return view('login');
     }
 
+    public function loginWithPassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        if (auth()->guard('portal')->attempt(
+            $request->only('email', 'password'),
+            (bool) $request->boolean('remember')
+        )) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('account.dashboard'));
+        }
+
+        return back()->withErrors(['email' => __('auth.failed')])->withInput($request->only('email'));
+    }
+
     public function requestOtp(Request $request): RedirectResponse
     {
         $request->validate(['email' => 'required|email']);

@@ -10,10 +10,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
 
-Route::middleware('throttle:5,15')->group(function () {
+// טעינת דפי לוגין/אימות – הגבלה רחבה (60 לדקה) כדי לא לחסום גישה רגילה
+Route::middleware('throttle:60,1')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'requestOtp'])->name('login.request');
     Route::get('/verify', [LoginController::class, 'showVerifyForm'])->name('verify');
+});
+
+// שליחת טופס (OTP, סיסמה) – הגבלה חזקה נגד brute force (10 ניסיונות ל-15 דקות)
+Route::middleware('throttle:10,15')->group(function () {
+    Route::post('/login', [LoginController::class, 'requestOtp'])->name('login.request');
+    Route::post('/login/password', [LoginController::class, 'loginWithPassword'])->name('login.password');
     Route::post('/verify', [LoginController::class, 'verifyOtp'])->name('verify.submit');
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('throttle:10,1');

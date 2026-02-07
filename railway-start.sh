@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
-echo "[railway-start] Caching config..."
+# מנקה cache ישן (שאולי נשמר עם Postgres.railway.internal) ואז בונה מחדש מהמשתנים הנוכחיים
+echo "[railway-start] Clearing and caching config..."
+php artisan config:clear
 php artisan config:cache
 
 echo "[railway-start] Running migrations (updating DB tables)..."
