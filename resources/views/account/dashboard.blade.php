@@ -63,9 +63,10 @@
 
         {{-- Your next order (prominent) --}}
         <section id="next-order" class="scroll-mt-28 mb-10">
-            <div class="rounded-2xl bg-white border-2 border-[#002642]/20 shadow-sm overflow-hidden">
+            <div class="rounded-2xl bg-white border-2 border-[#002642]/20  overflow-hidden">
                 <div class="p-5 sm:p-6 bg-gradient-to-r from-[#002642]/08 to-transparent">
-                    <h2 class="text-lg font-bold mills-primary">Your next order</h2>
+                    @php $displayName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : ''; @endphp
+                    <h2 class="text-lg font-bold mills-primary">Your next order@if($displayName !== ''), {{ $displayName }}@endif</h2>
                     <p class="text-sm text-slate-600 mt-0.5">Scheduled delivery date</p>
                     @if($nextChargeDate)
                         @php $nextDate = \Carbon\Carbon::parse($nextChargeDate); @endphp
@@ -92,7 +93,7 @@
                         ? round($originalPrice * (1 - $discountPct / 100), 2)
                         : $originalPrice;
                 @endphp
-                <div class="upsell-product-card flex-shrink-0 w-[220px] max-w-[90%] bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+                <div class="upsell-product-card flex-shrink-0 w-[220px] max-w-[90%] bg-white rounded-2xl overflow-hidden  hover:shadow-md transition">
                     <div class="upsell-product-card-image-wrapper relative w-full bg-[#E0E0E0]" style="padding-top: 105%;">
                         @if($product->image_url)
                             <img src="{{ $product->image_url }}" alt="{{ $product->title }}" class="absolute inset-0 w-full h-full object-cover object-top" loading="lazy" onerror="this.style.display='none'">
@@ -155,7 +156,7 @@
             <h2 class="text-xl font-bold mills-primary mb-4">What's on the menu</h2>
             <div class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none;">
                 @foreach($promotedProducts as $promo)
-                <a href="{{ $promo['link'] ?? '#' }}" class="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition block">
+                <a href="{{ $promo['link'] ?? '#' }}" class="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border border-slate-200/80 p-5  hover:shadow-md transition block">
                     <h3 class="font-semibold mills-primary mb-1">{{ $promo['title'] }}</h3>
                     <p class="text-sm text-slate-600 mb-4">{{ $promo['description'] ?? '' }}</p>
                     <span class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90">{{ $promo['cta'] ?? 'Learn more' }}</span>
@@ -169,11 +170,11 @@
         <section id="overview" class="scroll-mt-28 mb-12">
             <h2 class="text-xl font-bold mills-primary mb-4">Your overview</h2>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5">
                     <p class="text-slate-500 text-sm">Active subscriptions</p>
                     <p class="text-2xl font-bold mills-primary mt-1">{{ $activeSubscriptionsCount }}</p>
                 </div>
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 ">
                     <p class="text-slate-500 text-sm">Next charge</p>
                     <p class="text-lg font-bold text-slate-800 mt-1">{{ $nextChargeDate ? \Carbon\Carbon::parse($nextChargeDate)->format('M j, Y') : '—' }}</p>
                 </div>
