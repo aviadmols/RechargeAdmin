@@ -90,10 +90,7 @@ class AddProductController extends Controller
             'charge_interval_frequency' => $product->order_interval_frequency,
             'charge_interval_unit' => $product->order_interval_unit,
             'next_charge_scheduled_at' => $nextChargeAt,
-            'external_variant_id' => [
-                'ecommerce' => 'shopify',
-                'external_variant_id' => $variantId,
-            ],
+            'external_variant_id' => (int) $variantId,
         ];
 
         try {
