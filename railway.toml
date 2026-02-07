@@ -6,4 +6,5 @@ builder = "NIXPACKS"
 
 [deploy]
 preDeployCommand = "php artisan config:cache"
-startCommand = "sh railway-start.sh"
+# Inline commands so start works even if railway-start.sh is missing from the image
+startCommand = "php artisan config:clear && php artisan config:cache && exec php artisan serve --host=0.0.0.0 --port=$PORT"
