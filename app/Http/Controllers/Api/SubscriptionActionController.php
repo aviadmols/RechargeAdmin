@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Account\AccountDashboardController;
 use App\Http\Controllers\Controller;
 use App\Models\RechargeSettings;
 use App\Services\AuditLogService;
@@ -39,7 +38,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->updateNextChargeDate($id, Carbon::parse($request->input('date')));
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.next_charge_date', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -57,7 +55,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->cancelSubscription($id, $payload);
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.cancel', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -74,7 +71,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->pauseSubscription($id);
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.pause', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -91,7 +87,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->resumeSubscription($id);
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.resume', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -109,7 +104,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->swapSubscriptionVariant($id, $request->input('external_variant_id'));
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.swap', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -124,7 +118,6 @@ class SubscriptionActionController extends Controller
         try {
             $this->recharge->updateSubscriptionQuantity($id, (int) $request->input('quantity'));
             $this->recharge->invalidateCustomerCache($this->customerId());
-            AccountDashboardController::forgetDashboardCache($this->customerId());
             $this->audit->log('subscription.quantity', $this->email(), $this->customerId(), 'subscription', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {

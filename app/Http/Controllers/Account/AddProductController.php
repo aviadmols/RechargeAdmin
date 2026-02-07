@@ -127,7 +127,6 @@ class AddProductController extends Controller
             return redirect()->route('account.dashboard')->with('error', 'Could not add product: ' . $e->getMessage());
         }
 
-        AccountDashboardController::forgetDashboardCache($customerId);
         return redirect()->route('account.dashboard')->with('success', __('Product added to your subscription.'));
     }
 
@@ -188,7 +187,7 @@ class AddProductController extends Controller
         } catch (\Throwable $e) {
             return redirect()->route('account.dashboard')->with('error', 'Could not add one-time product: ' . $e->getMessage());
         }
-        AccountDashboardController::forgetDashboardCache($customerId);
+
         return redirect()->route('account.dashboard')->with('success', __('One-time product added. It will be included in your next order.'));
     }
 
