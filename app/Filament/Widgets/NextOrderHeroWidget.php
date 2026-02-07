@@ -11,7 +11,7 @@ class NextOrderHeroWidget extends Widget
 {
     protected static bool $isDiscovered = false;
 
-    protected int $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     /**
      * @var view-string
