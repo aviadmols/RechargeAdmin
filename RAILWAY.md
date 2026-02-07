@@ -74,9 +74,13 @@ In your app service **Variables**:
 
 Use the **public** database URL. In Railway: Postgres service → Variables → copy **DATABASE_PUBLIC_URL** or Public URL. Add it to your app service (and Worker) Variables. Redeploy.
 
+### 500 error / "Attempting to connect to the database"
+
+If Railway's **Postgres** service shows "Database Connection: Attempting to connect..." (in Postgres → Database tab), the DB is not ready. The app will show a **"Database temporarily unavailable"** page (503) instead of 500. Wait until Postgres shows **connected** in Railway, then refresh. You can also try restarting the Postgres service in Railway.
+
 ### server closed the connection unexpectedly / migrations fail at startup
 
-The script still starts the server after 8 failed migrate attempts. Options:
+The start script no longer runs migrations. Options:
 
 1. Run migrations manually: Railway → Web service → Shell / Run Command → `php artisan migrate:fresh --force` (or `migrate --force`).
 2. Ensure Postgres service is Online.
