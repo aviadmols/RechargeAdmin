@@ -42,21 +42,20 @@ class AddProductController extends Controller
 
         $variantId = $product->shopify_variant_id;
         if (str_starts_with($variantId, 'gid://')) {
-            $variantId = last(explode('/', $variantId));
+            $variantId = last(explode('/', trim($variantId)));
         }
+        $variantId = (string) $variantId;
 
         $payload = [
             'address_id' => (int) $addressId,
             'quantity' => 1,
             'order_interval_frequency' => $product->order_interval_frequency,
             'order_interval_unit' => $product->order_interval_unit,
+            'external_variant_id' => [
+                'ecommerce' => 'shopify',
+                'external_variant_id' => $variantId,
+            ],
         ];
-
-        if (config('recharge.api_version') === '2021-11') {
-            $payload['external_variant_id'] = ['external_variant_id' => $variantId];
-        } else {
-            $payload['shopify_variant_id'] = $variantId;
-        }
 
         try {
             $this->recharge->createSubscription($payload);
