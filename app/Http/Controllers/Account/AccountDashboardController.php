@@ -31,6 +31,19 @@ class AccountDashboardController extends Controller
                 $nextCharge = $date;
             }
         }
+        // If list didn't include next_charge_scheduled_at, try fetching first subscription
+        if (! $nextCharge && ! empty($activeSubs)) {
+            $first = is_array($activeSubs) ? array_values($activeSubs)[0] : $activeSubs[0];
+            $subId = $first['id'] ?? null;
+            if ($subId) {
+                try {
+                    $full = $this->recharge->getSubscription((string) $subId);
+                    $nextCharge = $full['next_charge_scheduled_at'] ?? null;
+                } catch (\Throwable) {
+                    // keep null
+                }
+            }
+        }
 
         $ordersData = $this->recharge->listOrders($customerId, ['limit' => 10]);
         $orders = $ordersData['orders'] ?? [];

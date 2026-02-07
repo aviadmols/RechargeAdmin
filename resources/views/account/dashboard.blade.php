@@ -37,6 +37,7 @@
     <nav class="sticky top-[52px] z-10 bg-white/80 backdrop-blur border-b border-slate-200/60">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-2">
             <div class="flex flex-wrap gap-2 sm:gap-4 justify-center">
+                <a href="#next-order" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Next order</a>
                 <a href="#products" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Products</a>
                 <a href="#featured" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Featured</a>
                 <a href="#overview" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Overview</a>
@@ -59,6 +60,24 @@
         @if (session('error'))
             <div class="mb-6 p-4 rounded-2xl bg-red-50 text-red-800 text-sm border border-red-200">{{ session('error') }}</div>
         @endif
+
+        {{-- Your next order (prominent) --}}
+        <section id="next-order" class="scroll-mt-28 mb-10">
+            <div class="rounded-2xl bg-white border-2 border-[#002642]/20 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 bg-gradient-to-r from-[#002642]/08 to-transparent">
+                    <h2 class="text-lg font-bold mills-primary">Your next order</h2>
+                    <p class="text-sm text-slate-600 mt-0.5">Scheduled delivery date</p>
+                    @if($nextChargeDate)
+                        @php $nextDate = \Carbon\Carbon::parse($nextChargeDate); @endphp
+                        <p class="text-2xl sm:text-3xl font-bold text-slate-800 mt-2">{{ $nextDate->format('l, F j, Y') }}</p>
+                        <p class="text-sm text-slate-500 mt-1">Your next shipment is scheduled for this date.</p>
+                    @else
+                        <p class="text-lg font-semibold text-slate-600 mt-2">No upcoming order scheduled</p>
+                        <p class="text-sm text-slate-500 mt-1">Add a subscription or product to see your next delivery date here.</p>
+                    @endif
+                </div>
+            </div>
+        </section>
 
         {{-- Section: Products we offer (upsell-style cards from Admin → Subscription products) --}}
         @if($subscriptionProducts->isNotEmpty())
