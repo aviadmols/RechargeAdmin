@@ -65,7 +65,7 @@
         <section id="next-order" class="scroll-mt-28 mb-10">
             <div class="rounded-2xl bg-white border-2 border-[#002642]/20  overflow-hidden">
                 <div class="p-5 sm:p-6 bg-gradient-to-r from-[#002642]/08 to-transparent">
-                    @php $customerName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')); @endphp
+                    @php $customerName = trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? '')); @endphp
                     <h2 class="text-lg font-bold mills-primary">Your next order@if($customerName !== ''){{ ', ' . $customerName }}@endif</h2>
                     <p class="text-sm text-slate-600 mt-0.5">Scheduled delivery date</p>
                     @if($nextChargeDate)
@@ -286,9 +286,9 @@
                 <h3 class="font-semibold mills-primary mb-3">Personal information</h3>
                 <dl class="grid sm:grid-cols-2 gap-2 text-sm">
                     <dt class="text-slate-500">Name</dt>
-                    <dd class="text-slate-800">{{ $user->first_name ?? '' }} {{ $user->last_name ?? '' }}</dd>
+                    <dd class="text-slate-800">{{ $user?->first_name ?? '' }} {{ $user?->last_name ?? '' }}</dd>
                     <dt class="text-slate-500">Email</dt>
-                    <dd class="text-slate-800">{{ $user->email }}</dd>
+                    <dd class="text-slate-800">{{ $user?->email ?? '' }}</dd>
                 </dl>
             </div>
 

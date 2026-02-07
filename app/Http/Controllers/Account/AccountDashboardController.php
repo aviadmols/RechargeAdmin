@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RechargeSettings;
 use App\Models\SubscriptionProduct;
 use App\Services\RechargeService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AccountDashboardController extends Controller
@@ -14,54 +15,77 @@ class AccountDashboardController extends Controller
         protected RechargeService $recharge
     ) {}
 
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $user = auth()->guard('portal')->user();
-        $customerId = $user->recharge_customer_id;
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
-        $subscriptionsData = $this->recharge->listSubscriptions($customerId, []);
-        $subs = $subscriptionsData['subscriptions'] ?? [];
-        $activeSubs = array_filter($subs, fn ($s) => ($s['status'] ?? '') === 'active');
-        $activeCount = count($activeSubs);
-
+        $customerId = $user->recharge_customer_id ?? '';
+        $subs = [];
+        $activeSubs = [];
+        $activeCount = 0;
         $nextCharge = null;
-        foreach ($activeSubs as $s) {
-            $date = $s['next_charge_scheduled_at'] ?? null;
-            if ($date && (! $nextCharge || $date < $nextCharge)) {
-                $nextCharge = $date;
-            }
-        }
-        // If list didn't include next_charge_scheduled_at, try fetching first subscription
-        if (! $nextCharge && ! empty($activeSubs)) {
-            $first = is_array($activeSubs) ? array_values($activeSubs)[0] : $activeSubs[0];
-            $subId = $first['id'] ?? null;
-            if ($subId) {
-                try {
-                    $full = $this->recharge->getSubscription((string) $subId);
-                    $nextCharge = $full['next_charge_scheduled_at'] ?? null;
-                } catch (\Throwable) {
-                    // keep null
-                }
-            }
-        }
-
-        $ordersData = $this->recharge->listOrders($customerId, ['limit' => 10]);
-        $orders = $ordersData['orders'] ?? [];
-        $ordersCount = $ordersData['count'] ?? count($orders);
-        $lastOrder = $orders[0] ?? null;
-
+        $orders = [];
+        $ordersCount = 0;
+        $lastOrder = null;
         $address = null;
         $addressId = null;
-        $firstSub = $activeSubs[0] ?? $subs[0] ?? null;
-        if ($firstSub && ! empty($firstSub['address_id'])) {
-            $addressId = (string) $firstSub['address_id'];
-            $address = $this->recharge->getAddress($addressId);
+        $subscriptionProducts = collect();
+        $enableAddressUpdate = true;
+
+        try {
+            $subscriptionsData = $this->recharge->listSubscriptions($customerId, []);
+            $subs = $subscriptionsData['subscriptions'] ?? [];
+            $activeSubs = array_values(array_filter($subs, fn ($s) => ($s['status'] ?? '') === 'active'));
+            $activeCount = count($activeSubs);
+
+            foreach ($activeSubs as $s) {
+                $date = $s['next_charge_scheduled_at'] ?? null;
+                if ($date && (! $nextCharge || $date < $nextCharge)) {
+                    $nextCharge = $date;
+                }
+            }
+            if (! $nextCharge && ! empty($activeSubs)) {
+                $first = $activeSubs[0];
+                $subId = $first['id'] ?? null;
+                if ($subId) {
+                    try {
+                        $full = $this->recharge->getSubscription((string) $subId);
+                        $nextCharge = $full['next_charge_scheduled_at'] ?? null;
+                    } catch (\Throwable) {
+                        // keep null
+                    }
+                }
+            }
+
+            $ordersData = $this->recharge->listOrders($customerId, ['limit' => 10]);
+            $orders = $ordersData['orders'] ?? [];
+            $ordersCount = $ordersData['count'] ?? count($orders);
+            $lastOrder = $orders[0] ?? null;
+
+            $firstSub = $activeSubs[0] ?? $subs[0] ?? null;
+            if ($firstSub && ! empty($firstSub['address_id'])) {
+                $addressId = (string) $firstSub['address_id'];
+                try {
+                    $address = $this->recharge->getAddress($addressId);
+                } catch (\Throwable) {
+                    // leave address null
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+            // Continue with empty data so the page still loads
         }
 
-        $settings = RechargeSettings::first();
-        $enableAddressUpdate = $settings ? $settings->isFeatureEnabled('enable_address_update') : true;
-
-        $subscriptionProducts = SubscriptionProduct::active()->ordered()->get();
+        try {
+            $settings = RechargeSettings::first();
+            $enableAddressUpdate = $settings ? $settings->isFeatureEnabled('enable_address_update') : true;
+            $subscriptionProducts = SubscriptionProduct::active()->ordered()->get();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return view('account.dashboard', [
             'activeSubscriptionsCount' => $activeCount,
