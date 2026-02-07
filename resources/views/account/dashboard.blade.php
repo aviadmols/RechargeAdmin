@@ -65,14 +65,8 @@
         <section id="next-order" class="scroll-mt-28 mb-10">
             <div class="rounded-2xl bg-white border-2 border-[#002642]/20  overflow-hidden">
                 <div class="p-5 sm:p-6 bg-gradient-to-r from-[#002642]/08 to-transparent">
-                    @php
-                        $rc = $rechargeCustomer ?? [];
-                        $customerName = trim(($rc['first_name'] ?? '') . ' ' . ($rc['last_name'] ?? ''));
-                        if ($customerName === '' && $user) {
-                            $customerName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
-                        }
-                    @endphp
-                    <h2 class="text-lg font-bold mills-primary">Your next order@if($customerName !== ''){{ ', ' . $customerName }}@endif</h2>
+                    @php $rc = $rechargeCustomer ?? []; @endphp
+                    <h2 class="text-lg font-bold mills-primary">Your next order</h2>
                     <p class="text-sm text-slate-600 mt-0.5">Scheduled delivery date</p>
                     @if($nextChargeDate)
                         @php $nextDate = \Carbon\Carbon::parse($nextChargeDate); @endphp

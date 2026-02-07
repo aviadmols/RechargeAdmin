@@ -38,7 +38,11 @@ class AccountDashboardController extends Controller
 
         try {
             if ($customerId !== '') {
-                $rechargeCustomer = $this->recharge->getCustomer($customerId);
+                try {
+                    $rechargeCustomer = $this->recharge->getCustomer($customerId);
+                } catch (\Throwable) {
+                    $rechargeCustomer = null;
+                }
             }
             $subscriptionsData = $this->recharge->listSubscriptions($customerId, []);
             $subs = $subscriptionsData['subscriptions'] ?? [];
