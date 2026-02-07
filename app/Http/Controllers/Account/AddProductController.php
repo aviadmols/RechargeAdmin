@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionProduct;
+use App\Services\AuditLogService;
 use App\Services\RechargeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,8 @@ use Illuminate\Http\Request;
 class AddProductController extends Controller
 {
     public function __construct(
-        protected RechargeService $recharge
+        protected RechargeService $recharge,
+        protected AuditLogService $audit
     ) {}
 
     /**
@@ -40,6 +42,7 @@ class AddProductController extends Controller
 
         $addressId = (string) $firstSub['address_id'];
         $nextChargeAt = $firstSub['next_charge_scheduled_at'] ?? null;
+        $fullSub = null;
 
         // List API may omit next_charge_scheduled_at; fetch single subscription to get it
         if (! $nextChargeAt && ! empty($firstSub['id'])) {
@@ -47,7 +50,29 @@ class AddProductController extends Controller
             $nextChargeAt = $fullSub['next_charge_scheduled_at'] ?? null;
         }
 
+        $debugMeta = $this->buildAddProductDebugMeta(
+            $customerId,
+            $user->email ?? null,
+            (int) $request->product_id,
+            $subs,
+            $activeSubs,
+            $firstSub,
+            $fullSub,
+            $nextChargeAt,
+            'before_check'
+        );
+
         if (! $nextChargeAt) {
+            $this->audit->log(
+                'add_product.debug',
+                $user->email ?? null,
+                $customerId,
+                'subscription',
+                (string) ($firstSub['id'] ?? ''),
+                'fail',
+                'No next_charge_scheduled_at found for chosen subscription.',
+                $debugMeta
+            );
             return redirect()->route('account.dashboard')->with('error', 'Your active subscription has no next charge date set. Please contact support.');
         }
 
@@ -62,6 +87,8 @@ class AddProductController extends Controller
             'quantity' => 1,
             'order_interval_frequency' => $product->order_interval_frequency,
             'order_interval_unit' => $product->order_interval_unit,
+            'charge_interval_frequency' => $product->order_interval_frequency,
+            'charge_interval_unit' => $product->order_interval_unit,
             'next_charge_scheduled_at' => $nextChargeAt,
             'external_variant_id' => [
                 'ecommerce' => 'shopify',
@@ -71,10 +98,83 @@ class AddProductController extends Controller
 
         try {
             $this->recharge->createSubscription($payload);
+            $this->audit->log(
+                'add_product.success',
+                $user->email ?? null,
+                $customerId,
+                'subscription',
+                (string) ($firstSub['id'] ?? ''),
+                'success',
+                null,
+                $this->buildAddProductDebugMeta($customerId, $user->email ?? null, (int) $request->product_id, $subs, $activeSubs, $firstSub, $fullSub, $nextChargeAt, 'created')
+            );
         } catch (\Throwable $e) {
+            $this->audit->log(
+                'add_product.fail',
+                $user->email ?? null,
+                $customerId,
+                'subscription',
+                (string) ($firstSub['id'] ?? ''),
+                'fail',
+                $e->getMessage(),
+                $this->buildAddProductDebugMeta($customerId, $user->email ?? null, (int) $request->product_id, $subs, $activeSubs, $firstSub, $fullSub, $nextChargeAt, 'exception') + ['exception' => get_class($e), 'payload_sent' => $payload]
+            );
             return redirect()->route('account.dashboard')->with('error', 'Could not add product: ' . $e->getMessage());
         }
 
         return redirect()->route('account.dashboard')->with('success', __('Product added to your subscription.'));
+    }
+
+    /**
+     * Build metadata for add_product audit logs (visible in Admin → Audit logs).
+     */
+    private function buildAddProductDebugMeta(
+        string $customerId,
+        ?string $email,
+        int $productId,
+        array $subs,
+        array $activeSubs,
+        ?array $firstSub,
+        ?array $fullSub,
+        ?string $nextChargeAt,
+        string $step
+    ): array {
+        $subsSummary = [];
+        foreach ($subs as $i => $s) {
+            $subsSummary[] = [
+                'index' => $i,
+                'id' => $s['id'] ?? null,
+                'status' => $s['status'] ?? null,
+                'address_id' => $s['address_id'] ?? null,
+                'next_charge_scheduled_at' => $s['next_charge_scheduled_at'] ?? null,
+                'keys_in_response' => array_keys($s),
+            ];
+        }
+        $firstSubSnapshot = $firstSub ? [
+            'id' => $firstSub['id'] ?? null,
+            'status' => $firstSub['status'] ?? null,
+            'address_id' => $firstSub['address_id'] ?? null,
+            'next_charge_scheduled_at' => $firstSub['next_charge_scheduled_at'] ?? null,
+            'keys_in_response' => array_keys($firstSub),
+        ] : null;
+        $fullSubSnapshot = $fullSub ? [
+            'id' => $fullSub['id'] ?? null,
+            'next_charge_scheduled_at' => $fullSub['next_charge_scheduled_at'] ?? null,
+            'keys_in_response' => array_keys($fullSub),
+        ] : null;
+
+        return [
+            'step' => $step,
+            'customer_id' => $customerId,
+            'actor_email' => $email,
+            'product_id' => $productId,
+            'subscriptions_count' => count($subs),
+            'active_subscriptions_count' => count($activeSubs),
+            'subs_summary_from_list' => $subsSummary,
+            'first_sub_from_list' => $firstSubSnapshot,
+            'get_subscription_called' => $fullSub !== null,
+            'full_sub_from_get' => $fullSubSnapshot,
+            'final_next_charge_used' => $nextChargeAt,
+        ];
     }
 }
