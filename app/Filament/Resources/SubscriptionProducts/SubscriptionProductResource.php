@@ -41,6 +41,10 @@ class SubscriptionProductResource extends Resource
                     ->label('Title')
                     ->required()
                     ->maxLength(255),
+                TextInput::make('subtitle')
+                    ->label('Subtitle under product name')
+                    ->maxLength(255)
+                    ->placeholder('e.g. 5.29 oz daily pack'),
                 Textarea::make('description')
                     ->label('Description')
                     ->rows(2)
@@ -56,6 +60,31 @@ class SubscriptionProductResource extends Resource
                     ->label('Image URL')
                     ->url()
                     ->maxLength(500),
+                TextInput::make('badge_1')
+                    ->label('Badge 1')
+                    ->maxLength(64)
+                    ->placeholder('e.g. RECOMMENDED'),
+                TextInput::make('badge_2')
+                    ->label('Badge 2')
+                    ->maxLength(64),
+                TextInput::make('original_price')
+                    ->label('Original price ($)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->step(0.01)
+                    ->helperText('Display only, e.g. 3.92 for $3.92'),
+                TextInput::make('discount_percent')
+                    ->label('Discount (%)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->default(0)
+                    ->helperText('e.g. 50 for 50% off'),
+                TextInput::make('default_quantity')
+                    ->label('Default quantity')
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(1),
                 TextInput::make('order_interval_frequency')
                     ->label('Order interval (frequency)')
                     ->numeric()
@@ -90,6 +119,18 @@ class SubscriptionProductResource extends Resource
                     ->label('Title')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('subtitle')
+                    ->label('Subtitle')
+                    ->limit(20)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('original_price')
+                    ->label('Price')
+                    ->money('USD')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('discount_percent')
+                    ->label('Discount %')
+                    ->suffix('%')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('shopify_variant_id')
                     ->label('Shopify Variant ID')
                     ->searchable()

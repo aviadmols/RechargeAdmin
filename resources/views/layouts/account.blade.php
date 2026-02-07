@@ -17,6 +17,7 @@
         .mills-primary { color: {{ $primary }}; }
         .mills-primary-bg { background-color: {{ $primary }}; }
     </style>
+    @stack('styles')
 </head>
 <body class="min-h-screen mills-bg text-slate-900">
     <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60 shadow-sm">

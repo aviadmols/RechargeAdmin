@@ -60,30 +60,56 @@
             <div class="mb-6 p-4 rounded-2xl bg-red-50 text-red-800 text-sm border border-red-200">{{ session('error') }}</div>
         @endif
 
-        {{-- Section: Products we offer (from Admin → Subscription products) – at the start of account --}}
+        {{-- Section: Products we offer (upsell-style cards from Admin → Subscription products) --}}
         @if($subscriptionProducts->isNotEmpty())
         <section id="products" class="scroll-mt-28 mb-12">
             <h2 class="text-xl font-bold mills-primary mb-4">Our products</h2>
-            <div class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none;">
+            <div class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;" role="region" aria-label="Product cards">
                 @foreach($subscriptionProducts as $product)
-                <div class="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition">
-                    @if($product->image_url)
-                        <div class="aspect-[4/3] bg-slate-100">
-                            <img src="{{ $product->image_url }}" alt="" class="w-full h-full object-cover">
-                        </div>
-                    @endif
-                    <div class="p-5">
-                        <h3 class="font-semibold mills-primary mb-1">{{ $product->title }}</h3>
-                        @if($product->description)
-                            <p class="text-sm text-slate-600 mb-4 line-clamp-2">{{ $product->description }}</p>
-                        @else
-                            <p class="text-sm text-slate-500 mb-4">Every {{ $product->order_interval_frequency }} {{ $product->order_interval_unit }}(s)</p>
+                @php
+                    $originalPrice = $product->original_price ? (float) $product->original_price : null;
+                    $discountPct = $product->discount_percent ?? 0;
+                    $discountedPrice = $originalPrice !== null && $discountPct > 0
+                        ? round($originalPrice * (1 - $discountPct / 100), 2)
+                        : $originalPrice;
+                @endphp
+                <div class="upsell-product-card flex-shrink-0 w-[220px] max-w-[90%] bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+                    <div class="upsell-product-card-image-wrapper relative w-full bg-[#E0E0E0]" style="padding-top: 105%;">
+                        @if($product->image_url)
+                            <img src="{{ $product->image_url }}" alt="{{ $product->title }}" class="absolute inset-0 w-full h-full object-cover object-top" loading="lazy" onerror="this.style.display='none'">
                         @endif
-                        <form action="{{ route('account.products.add') }}" method="POST" class="inline" x-data="{ submitting: false }" @submit="submitting = true">
+                        @if($product->badge_1 || $product->badge_2)
+                            <div class="absolute top-3 right-3 flex flex-col gap-2 z-10">
+                                @if($product->badge_1)<span class="bg-[#002642] text-white text-xs font-bold px-3 py-1.5 rounded">{{ $product->badge_1 }}</span>@endif
+                                @if($product->badge_2)<span class="bg-[#002642] text-white text-xs font-bold px-3 py-1.5 rounded">{{ $product->badge_2 }}</span>@endif
+                            </div>
+                        @endif
+                    </div>
+                    <div class="upsell-product-content p-3 text-left">
+                        <div class="flex flex-wrap items-baseline justify-between gap-1 mb-0.5">
+                            <h3 class="text-lg font-semibold text-[#002642] leading-tight">{{ $product->title }}</h3>
+                            <span class="flex items-center gap-1 flex-shrink-0">
+                                @if($originalPrice !== null && $discountPct > 0 && $discountedPrice != $originalPrice)
+                                    <span class="text-sm text-[#999] line-through">${{ number_format($originalPrice, 2) }}</span>
+                                    <span class="text-sm font-semibold text-[#00ad67]">${{ number_format($discountedPrice, 2) }}</span>
+                                @elseif($originalPrice !== null)
+                                    <span class="text-sm font-semibold text-[#002642]">${{ number_format($originalPrice, 2) }}</span>
+                                @else
+                                    <span class="text-sm text-slate-500">Every {{ $product->order_interval_frequency }} {{ $product->order_interval_unit }}(s)</span>
+                                @endif
+                            </span>
+                        </div>
+                        @if($product->subtitle)
+                            <p class="text-sm font-bold text-slate-700 mb-1">{{ $product->subtitle }}</p>
+                        @endif
+                        @if($product->description)
+                            <p class="text-sm text-[#666] leading-snug line-clamp-2 mb-3">{{ Str::limit(strip_tags($product->description), 100) }}</p>
+                        @endif
+                        <form action="{{ route('account.products.add') }}" method="POST" class="mt-2 pt-2 border-t border-slate-200" x-data="{ submitting: false }" @submit="submitting = true">
                             @csrf
                             <input type="hidden" name="product_id" value="{{ $product->id }}">
-                            <button type="submit" class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90 disabled:opacity-70" :disabled="submitting">
-                                <span x-show="!submitting">Add to my subscription</span>
+                            <button type="submit" class="w-full rounded-full mills-primary-bg text-white text-sm font-semibold py-2.5 px-4 hover:opacity-90 disabled:opacity-70 transition" :disabled="submitting">
+                                <span x-show="!submitting">Add to my box</span>
                                 <span x-show="submitting" x-cloak>Adding…</span>
                             </button>
                         </form>
