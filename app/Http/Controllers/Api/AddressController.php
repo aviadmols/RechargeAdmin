@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Account\AccountDashboardController;
 use App\Http\Controllers\Controller;
 use App\Models\RechargeSettings;
 use App\Services\AuditLogService;
@@ -35,6 +36,7 @@ class AddressController extends Controller
         ]);
         try {
             $this->recharge->updateShippingAddress($id, $payload);
+            AccountDashboardController::forgetDashboardCache((string) $user->recharge_customer_id);
             $this->audit->log('address.update', $user->email, $user->recharge_customer_id, 'address', $id, 'success', null, []);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
