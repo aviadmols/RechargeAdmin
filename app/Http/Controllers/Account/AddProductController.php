@@ -31,7 +31,7 @@ class AddProductController extends Controller
 
         $subscriptionsData = $this->recharge->listSubscriptions($customerId, []);
         $subs = $subscriptionsData['subscriptions'] ?? [];
-        $activeSubs = array_filter($subs, fn ($s) => ($s['status'] ?? '') === 'active');
+        $activeSubs = array_values(array_filter($subs, fn ($s) => ($s['status'] ?? '') === 'active'));
         $firstSub = $activeSubs[0] ?? $subs[0] ?? null;
 
         if (! $firstSub || empty($firstSub['address_id'])) {
@@ -40,6 +40,13 @@ class AddProductController extends Controller
 
         $addressId = (string) $firstSub['address_id'];
         $nextChargeAt = $firstSub['next_charge_scheduled_at'] ?? null;
+
+        // List API may omit next_charge_scheduled_at; fetch single subscription to get it
+        if (! $nextChargeAt && ! empty($firstSub['id'])) {
+            $fullSub = $this->recharge->getSubscription((string) $firstSub['id']);
+            $nextChargeAt = $fullSub['next_charge_scheduled_at'] ?? null;
+        }
+
         if (! $nextChargeAt) {
             return redirect()->route('account.dashboard')->with('error', 'Your active subscription has no next charge date set. Please contact support.');
         }
