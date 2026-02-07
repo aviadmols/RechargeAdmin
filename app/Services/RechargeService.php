@@ -181,7 +181,7 @@ class RechargeService
         $this->invalidateSubscriptionCache($subscriptionId, null);
         $response = $this->client()->put("{$this->baseUrl}/subscriptions/{$subscriptionId}", [
             'external_variant_id' => [
-                'external_variant_id' => $externalVariantId,
+                'ecommerce' => (string) $externalVariantId,
             ],
         ]);
         if (! $response->successful()) {
@@ -244,21 +244,39 @@ class RechargeService
      * Create a new subscription (add a product to the customer – same address).
      * Required scope: write_subscriptions.
      * Uses Recharge API version 2021-11 and X-Recharge-Version header.
+     * Normalizes external_variant_id and external_product_id to { ecommerce: "<id>" } before sending.
      *
      * @see https://developer.rechargepayments.com/2021-11/subscriptions/subscriptions_create
      */
     public function createSubscription(array $payload): array
     {
+        if (isset($payload['external_variant_id'])) {
+            $payload['external_variant_id'] = [
+                'ecommerce' => (string) $payload['external_variant_id'],
+            ];
+        }
+
+        if (isset($payload['external_product_id'])) {
+            $payload['external_product_id'] = [
+                'ecommerce' => (string) $payload['external_product_id'],
+            ];
+        }
+
         $response = $this->client('2021-11')->post("{$this->baseUrl}/subscriptions", $payload);
+
         if (! $response->successful()) {
             throw new \RuntimeException('Recharge create subscription failed: ' . $response->body());
         }
+
         $this->markSuccess();
+
         $data = $response->json();
         $subscription = $data['subscription'] ?? $data;
+
         if (! empty($subscription['address_id'])) {
             $this->invalidateSubscriptionCache(null, (string) ($subscription['customer_id'] ?? ''));
         }
+
         return $data;
     }
 
