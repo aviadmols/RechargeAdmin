@@ -1,6 +1,6 @@
 # Deploying to Railway (Recharge Customer Portal)
 
-Short guide to set up the project on [Railway](https://railway.com/). On each deploy the start script runs `migrate:fresh --force` (wipes DB and reinstalls all tables), then starts the server.
+Short guide to set up the project on [Railway](https://railway.com/). The start script does **not** run migrations (Railway's Postgres proxy often drops connections from the container). You run migrations **once from your machine** – see **SETUP-RAILWAY-DB.md**.
 
 ---
 
@@ -44,7 +44,7 @@ In your app service **Variables**:
 ### 4. What runs on deploy
 
 - **preDeployCommand:** `php artisan config:cache`
-- **startCommand:** `sh railway-start.sh` – clears config cache, waits 15s, runs **migrate:fresh --force** (wipes DB and recreates all tables), then `php artisan serve`. If migrate fails after 8 retries, the server still starts.
+- **startCommand:** `sh railway-start.sh` – clears config cache and starts `php artisan serve`. **Migrations do not run** in the container (to avoid DB connection failures). Run them once from your computer – see **SETUP-RAILWAY-DB.md**.
 
 ### 5. Worker (optional)
 
@@ -88,6 +88,4 @@ The script still starts the server after 8 failed migrate attempts. Options:
 
 - **Database:** PostgreSQL; set `DATABASE_PUBLIC_URL` (or `DATABASE_URL`) in app and Worker.
 - **Required:** `APP_KEY`, `APP_URL`, `APP_ENV=production`, `APP_DEBUG=false`.
-- **On deploy:** Start script runs `migrate:fresh --force` (full DB wipe and reinstall), then starts the server.
-
-After deploy, log in at `/admin` and configure Recharge in the UI.
+- **On deploy:** Start script only runs config cache and starts the server. **Run migrations once from your machine** (SETUP-RAILWAY-DB.md) so the DB has tables. Then log in at `/admin`.
