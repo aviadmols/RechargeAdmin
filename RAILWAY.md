@@ -122,6 +122,16 @@ To run scheduled commands (OTP cleanup, log pruning):
 
 האפליקציה מוגדרת להעדיף `DATABASE_PUBLIC_URL` על פני `DATABASE_URL`. **שני השירותים (Web ו-Worker) חייבים** את `DATABASE_PUBLIC_URL` ב-Variables.
 
+### "server closed the connection unexpectedly" / מיגרציות נכשלות בהפעלה
+ה-proxy של Postgres ב-Railway לפעמים לא יציב בהפעלה. השרת **כן עולה** (הסקריפט ממשיך גם אם migrate נכשל), אבל דפים שצריכים DB עלולים לתת שגיאה.
+
+**מה לעשות:**
+1. **הרצת מיגרציות ידנית:** ב-Railway → השירות (Web) → **Settings** או **Deploy** → אם יש **Shell** / **Console** / **Run Command**, הרץ פעם אחת:  
+   `php artisan migrate --force`  
+   כך הטבלאות ייווצרו וה-app יעבוד.
+2. **וודא ש-Postgres Online:** שירות Postgres חייב להיות במצב Online. אם הוא מושהה או sleeping, הפעל אותו.
+3. אחרי deploy חדש הסקריפט מחכה 15 שניות ומנסה 8 פעמים עם 8 שניות בין ניסיונות – לפעמים זה עובר בהפעלה מאוחרת יותר.
+
 ---
 
 ## Summary
