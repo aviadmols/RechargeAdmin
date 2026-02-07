@@ -39,6 +39,7 @@ class AccountDashboardController extends Controller
             'nextChargeDate' => $nextCharge,
             'ordersCount' => $ordersCount,
             'lastOrder' => $lastOrder,
+            'promotedProducts' => config('mills.promoted_products', []),
         ]);
     }
 }

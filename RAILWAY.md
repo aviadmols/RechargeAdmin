@@ -38,6 +38,9 @@ In your app service **Variables**:
 | `APP_URL` | Yes | Your app URL with **https**, e.g. `https://your-app.up.railway.app`. |
 | `APP_ENV` | Recommended | `production` |
 | `APP_DEBUG` | Recommended | `false` |
+| `SESSION_SECURE_COOKIE` | For HTTPS | `true` (so session cookie is sent over HTTPS and CSRF works). |
+
+**Important:** `APP_URL` must be exactly your public URL with **https**, e.g. `https://worker-production-03d8.up.railway.app`. If it is wrong, redirects and CSRF (419 Page Expired) can fail.
 
 **Optional:** `CACHE_STORE`, `QUEUE_CONNECTION`, mail settings.  
 **If you get 500 errors:** set `SESSION_DRIVER=file` in the Worker/Web service Variables so the app does not need the database for sessions; then only pages that use the DB need a working connection.
@@ -86,6 +89,16 @@ Use the **public** database URL. In Railway: Postgres service → Variables → 
 ### 500 error / "Attempting to connect to the database"
 
 If Railway's **Postgres** service shows "Database Connection: Attempting to connect..." (in Postgres → Database tab), the DB is not ready. The app will show a **"Database temporarily unavailable"** page (503) instead of 500. Wait until Postgres shows **connected** in Railway, then refresh. You can also try restarting the Postgres service in Railway.
+
+### 419 Page Expired (after login or form submit)
+
+The app runs behind Railway’s proxy. So that HTTPS and session cookies work:
+
+1. **TrustProxies** – The app already trusts proxies (see `bootstrap/app.php`). No change needed.
+2. **APP_URL** – In the Web service Variables set `APP_URL` to your **exact** public URL, e.g. `https://worker-production-03d8.up.railway.app` (no trailing slash).
+3. **SESSION_SECURE_COOKIE** – In the Web service Variables set `SESSION_SECURE_COOKIE=true` so the session cookie is sent over HTTPS.
+
+Redeploy after changing Variables.
 
 ### server closed the connection unexpectedly / migrations fail at startup
 
