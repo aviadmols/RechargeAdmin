@@ -132,6 +132,10 @@ To run scheduled commands (OTP cleanup, log pruning):
 2. **וודא ש-Postgres Online:** שירות Postgres חייב להיות במצב Online. אם הוא מושהה או sleeping, הפעל אותו.
 3. אחרי deploy חדש הסקריפט מחכה 15 שניות ומנסה 8 פעמים עם 8 שניות בין ניסיונות – לפעמים זה עובר בהפעלה מאוחרת יותר.
 
+### איפוס ה-DB ויצירת אדמין מהמחשב (כשהחיבור מתוך Railway נכשל)
+אם המיגרציות לא רצות ב-Railway, אפשר **להריץ מהמחשב שלך** מול ה-DB של Railway: איפוס טבלאות + יצירת אדמין.  
+ראה **SETUP-RAILWAY-DB.md** – שם מוסבר איך להעתיק את `DATABASE_PUBLIC_URL` ל-.env ולהריץ את `setup-railway-db.sh` (או את הפקודות ב-PowerShell).
+
 ---
 
 ## Summary
