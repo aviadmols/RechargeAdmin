@@ -39,6 +39,10 @@ class AddProductController extends Controller
         }
 
         $addressId = (string) $firstSub['address_id'];
+        $nextChargeAt = $firstSub['next_charge_scheduled_at'] ?? null;
+        if (! $nextChargeAt) {
+            return redirect()->route('account.dashboard')->with('error', 'Your active subscription has no next charge date set. Please contact support.');
+        }
 
         $variantId = $product->shopify_variant_id;
         if (str_starts_with($variantId, 'gid://')) {
@@ -51,6 +55,7 @@ class AddProductController extends Controller
             'quantity' => 1,
             'order_interval_frequency' => $product->order_interval_frequency,
             'order_interval_unit' => $product->order_interval_unit,
+            'next_charge_scheduled_at' => $nextChargeAt,
             'external_variant_id' => [
                 'ecommerce' => 'shopify',
                 'external_variant_id' => $variantId,
