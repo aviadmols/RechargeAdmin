@@ -34,8 +34,12 @@ class AccountDashboardController extends Controller
         $addressId = null;
         $subscriptionProducts = collect();
         $enableAddressUpdate = true;
+        $rechargeCustomer = null;
 
         try {
+            if ($customerId !== '') {
+                $rechargeCustomer = $this->recharge->getCustomer($customerId);
+            }
             $subscriptionsData = $this->recharge->listSubscriptions($customerId, []);
             $subs = $subscriptionsData['subscriptions'] ?? [];
             $activeSubs = array_values(array_filter($subs, fn ($s) => ($s['status'] ?? '') === 'active'));
@@ -100,6 +104,7 @@ class AccountDashboardController extends Controller
             'addressId' => $addressId,
             'enableAddressUpdate' => $enableAddressUpdate,
             'user' => $user,
+            'rechargeCustomer' => $rechargeCustomer,
         ]);
     }
 }

@@ -68,6 +68,25 @@ class RechargeService
         return $customers[0] ?? null;
     }
 
+    /**
+     * Retrieve a single customer by ID from Recharge.
+     *
+     * @see https://developer.rechargepayments.com/2021-11/customers/customers_retrieve
+     */
+    public function getCustomer(string $customerId): ?array
+    {
+        if ($customerId === '') {
+            return null;
+        }
+        $response = $this->client('2021-11')->get("{$this->baseUrl}/customers/{$customerId}");
+        if (! $response->successful()) {
+            return null;
+        }
+        $this->markSuccess();
+        $data = $response->json();
+        return $data['customer'] ?? $data;
+    }
+
     public function listOrders(string $customerId, array $params = []): array
     {
         $ttl = (int) (RechargeSettings::first()?->cache_ttl_orders ?? 120);
