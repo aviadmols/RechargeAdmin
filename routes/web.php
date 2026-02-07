@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Account\AccountDashboardController;
+use App\Http\Controllers\Account\AddProductController;
 use App\Http\Controllers\Account\OrderHistoryController;
 use App\Http\Controllers\Account\SubscriptionController;
 use App\Http\Controllers\Api\AddressController;
@@ -26,6 +27,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 
 Route::middleware(['auth:portal'])->prefix('account')->name('account.')->group(function () {
     Route::get('/', [AccountDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/products/add', [AddProductController::class, 'store'])->name('products.add');
     Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}', [OrderHistoryController::class, 'show'])->name('orders.show');
     Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');

@@ -50,7 +50,7 @@
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-24">
 
     
-    <img src="//millsdailypacks.com/cdn/shop/t/104/assets/doggies%20blue%201.svg?v=34908997617189530931769941793" alt="Dogs Illustration">
+    <img src="//millsdailypacks.com/cdn/shop/t/104/assets/doggies%20blue%201.svg?v=34908997617189530931769941793" alt="Dogs Illustration" style=" margin-left: auto;  margin-right: auto;">
     
     
     @if (session('success'))
@@ -79,7 +79,14 @@
                         @else
                             <p class="text-sm text-slate-500 mb-4">Every {{ $product->order_interval_frequency }} {{ $product->order_interval_unit }}(s)</p>
                         @endif
-                        <a href="#subscriptions" class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90">Add to my subscription</a>
+                        <form action="{{ route('account.products.add') }}" method="POST" class="inline" x-data="{ submitting: false }" @submit="submitting = true">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <button type="submit" class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90 disabled:opacity-70" :disabled="submitting">
+                                <span x-show="!submitting">Add to my subscription</span>
+                                <span x-show="submitting" x-cloak>Adding…</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 @endforeach
