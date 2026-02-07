@@ -258,8 +258,14 @@
             @if(empty($subscriptions))
                 <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center text-slate-600">No subscriptions.</div>
             @else
+                @php
+                    $activeFirst = array_merge(
+                        array_values(array_filter($subscriptions, fn ($s) => ($s['status'] ?? '') === 'active')),
+                        array_values(array_filter($subscriptions, fn ($s) => ($s['status'] ?? '') !== 'active'))
+                    );
+                @endphp
                 <div class="space-y-4">
-                    @foreach(array_slice($subscriptions, 0, 5) as $sub)
+                    @foreach(array_slice($activeFirst, 0, 5) as $sub)
                         <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition">
                             <div class="flex flex-wrap items-center justify-between gap-4">
                                 <div>
