@@ -17,7 +17,7 @@ return [
     */
 
     'default' => env('DB_CONNECTION', (function () {
-        $url = env('DATABASE_URL', env('DB_URL'));
+        $url = env('DATABASE_PUBLIC_URL', env('DATABASE_URL', env('DB_URL')));
         if ($url && str_starts_with((string) $url, 'postgres')) {
             return 'pgsql';
         }
@@ -94,7 +94,8 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL', env('DB_URL')),
+            // Railway: אם Postgres.railway.internal לא נפתר, השתמש ב-DATABASE_PUBLIC_URL (העתק מ-Postgres → Connect → Public)
+            'url' => env('DATABASE_PUBLIC_URL', env('DATABASE_URL', env('DB_URL'))),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'laravel'),

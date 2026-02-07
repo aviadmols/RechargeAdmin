@@ -101,11 +101,25 @@ To run scheduled commands (OTP cleanup, log pruning):
 
 ---
 
-## Troubleshooting: "Pre-deploy command failed"
+## Troubleshooting
 
-- **בודקים לוגים:** ב-Railway → Deployments → בחר את ה-deploy שנכשל → **View Logs**. השגיאה המלאה תופיע שם.
+### "Pre-deploy command failed"
+- **בודקים לוגים:** ב-Railway → Deployments → בחר את ה-deploy שנכשל → **View Logs**.
 - **אם כתוב ש-APP_KEY חסר:** הוסף ב-Variables את `APP_KEY` (הרץ מקומית `php artisan key:generate --show` והדבק).
-- **אם השגיאה קשורה ל-database:** וודא ש-`DATABASE_URL` מחובר לשירות האפליקציה (Reference מ-Postgres). המיגרציות רצות בשלב ה-**Start** (לא ב-Pre deploy), כך שה-DB אמור להיות זמין.
+
+### "could not translate host name Postgres.railway.internal to address"
+החיבור הפנימי של Railway ל-Postgres לא נפתר (DNS). **פתרון:** להשתמש ב־**כתובת ציבורית** של ה-DB.
+
+1. ב-Railway: בחר את שירות **Postgres** (לא את האפליקציה).
+2. לך ל-**Variables** או **Connect** – חפש **Public URL** / **DATABASE_PUBLIC_URL** או connection string שמכיל host כמו `xxx.railway.app` (לא `Postgres.railway.internal`).
+3. **העתק** את ה-URL הציבורי.
+4. בחר את **שירות האפליקציה** (Web) → **Variables**.
+5. הוסף משתנה חדש:
+   - **Name:** `DATABASE_PUBLIC_URL`
+   - **Value:** ההדבקה של ה-URL הציבורי (מתחיל ב-`postgresql://...`).
+6. **שמור** ועשה **Redeploy** לשירות האפליקציה.
+
+האפליקציה מוגדרת להעדיף `DATABASE_PUBLIC_URL` על פני `DATABASE_URL`, כך שהחיבור יעבוד דרך הכתובת הציבורית.
 
 ---
 
