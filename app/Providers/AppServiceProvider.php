@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // מאפשר HTTPS ב-production (Railway וכו') – מונע Mixed Content כשהדף ב-HTTPS והאססטים ב-HTTP
+        // Force HTTPS in production (e.g. Railway) to avoid Mixed Content
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }

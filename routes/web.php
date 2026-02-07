@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
 
-// טעינת דפי לוגין/אימות – הגבלה רחבה (60 לדקה) כדי לא לחסום גישה רגילה
+// Login/verify page load – higher limit (60/min)
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::get('/verify', [LoginController::class, 'showVerifyForm'])->name('verify');
 });
 
-// שליחת טופס (OTP, סיסמה) – הגבלה חזקה נגד brute force (10 ניסיונות ל-15 דקות)
+// Form submit (OTP, password) – strict limit vs brute force (10 per 15 min)
 Route::middleware('throttle:10,15')->group(function () {
     Route::post('/login', [LoginController::class, 'requestOtp'])->name('login.request');
     Route::post('/login/password', [LoginController::class, 'loginWithPassword'])->name('login.password');

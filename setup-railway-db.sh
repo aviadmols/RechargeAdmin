@@ -1,6 +1,6 @@
 #!/bin/sh
-# מריץ מהמחשב שלך – מתחבר ל-DB של Railway, מאפס טבלאות ויוצר אדמין.
-# לפני ההרצה: העתק DATABASE_PUBLIC_URL מ-Railway (Postgres → Variables) ל-.env בפרויקט.
+# Run from your machine: connects to Railway DB, wipes tables and creates admin.
+# Before running: copy DATABASE_PUBLIC_URL from Railway (Postgres -> Variables) into .env.
 
 set -e
 echo "==> Clearing config so Laravel uses DATABASE_PUBLIC_URL from .env..."

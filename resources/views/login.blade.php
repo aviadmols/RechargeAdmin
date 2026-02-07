@@ -13,7 +13,7 @@
         <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ $errors->first() }}</div>
     @endif
 
-    {{-- התחברות עם סיסמה (משתמשים שהאדמין הגדיר להם) --}}
+    {{-- Sign in with password (users set up by admin) --}}
     <div class="mb-8">
         <p class="text-slate-600 text-sm mb-3">Sign in with email and password</p>
         <form action="{{ route('login.password') }}" method="POST" class="space-y-4">
