@@ -39,12 +39,21 @@ In your app service **Variables**:
 | `APP_ENV` | Recommended | `production` |
 | `APP_DEBUG` | Recommended | `false` |
 
-**Optional:** `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, mail settings.
+**Optional:** `CACHE_STORE`, `QUEUE_CONNECTION`, mail settings.  
+**If you get 500 errors:** set `SESSION_DRIVER=file` in the Worker/Web service Variables so the app does not need the database for sessions; then only pages that use the DB need a working connection.
 
 ### 4. What runs on deploy
 
 - **preDeployCommand:** `php artisan config:cache`
-- **startCommand:** `sh railway-start.sh` – clears config cache and starts `php artisan serve`. **Migrations do not run** in the container (to avoid DB connection failures). Run them once from your computer – see **SETUP-RAILWAY-DB.md**.
+- **startCommand:** inline (config clear, config cache, then `php artisan serve`). No migrations in container – run once from your machine (see **SETUP-RAILWAY-DB.md**).
+
+**If you see "cannot open railway-start.sh":** Railway is using an old Start Command. Set it manually: open your **Web** service → **Settings** → **Deploy** → **Custom Start Command** (or **Start Command**). Clear any value like `sh railway-start.sh` and set exactly:
+
+```
+php artisan config:clear && php artisan config:cache && exec php artisan serve --host=0.0.0.0 --port=$PORT
+```
+
+Save and **Redeploy**. The repo’s `railway.toml` uses this too; if the dashboard overrides it, the above fixes the error.
 
 ### 5. Worker (optional)
 

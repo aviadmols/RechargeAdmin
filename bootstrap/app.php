@@ -24,8 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Any DB error (connection, missing table, etc.) -> friendly "Database unavailable" page
         $exceptions->render(function (QueryException $e, Request $request): ?Response {
-            if (! $request->expectsJson() && str_contains($e->getMessage(), 'connection')) {
+            if (! $request->expectsJson()) {
                 return response()->view('errors.db-unavailable', [], 503);
             }
             return null;
