@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\RechargeSettings;
+use App\Models\SubscriptionProduct;
 use App\Services\RechargeService;
 use Illuminate\View\View;
 
@@ -47,11 +48,14 @@ class AccountDashboardController extends Controller
         $settings = RechargeSettings::first();
         $enableAddressUpdate = $settings ? $settings->isFeatureEnabled('enable_address_update') : true;
 
+        $subscriptionProducts = SubscriptionProduct::active()->ordered()->get();
+
         return view('account.dashboard', [
             'activeSubscriptionsCount' => $activeCount,
             'nextChargeDate' => $nextCharge,
             'ordersCount' => $ordersCount,
             'lastOrder' => $lastOrder,
+            'subscriptionProducts' => $subscriptionProducts,
             'promotedProducts' => config('mills.promoted_products', []),
             'orders' => $orders,
             'subscriptions' => $subs,

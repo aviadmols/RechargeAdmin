@@ -37,6 +37,7 @@
     <nav class="sticky top-[52px] z-10 bg-white/80 backdrop-blur border-b border-slate-200/60">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-2">
             <div class="flex flex-wrap gap-2 sm:gap-4 justify-center">
+                <a href="#products" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Products</a>
                 <a href="#featured" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Featured</a>
                 <a href="#overview" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Overview</a>
                 <a href="#orders" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Orders</a>
@@ -47,11 +48,43 @@
     </nav>
 
     <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-24">
-        @if (session('success'))
+
+    
+    <img src="//millsdailypacks.com/cdn/shop/t/104/assets/doggies%20blue%201.svg?v=34908997617189530931769941793" alt="Dogs Illustration">
+    
+    
+    @if (session('success'))
             <div class="mb-6 p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm border border-emerald-200" x-data x-init="setTimeout(() => $el.remove(), 4000)">{{ session('success') }}</div>
         @endif
         @if (session('error'))
             <div class="mb-6 p-4 rounded-2xl bg-red-50 text-red-800 text-sm border border-red-200">{{ session('error') }}</div>
+        @endif
+
+        {{-- Section: Products we offer (from Admin → Subscription products) – at the start of account --}}
+        @if($subscriptionProducts->isNotEmpty())
+        <section id="products" class="scroll-mt-28 mb-12">
+            <h2 class="text-xl font-bold mills-primary mb-4">Our products</h2>
+            <div class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                @foreach($subscriptionProducts as $product)
+                <div class="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition">
+                    @if($product->image_url)
+                        <div class="aspect-[4/3] bg-slate-100">
+                            <img src="{{ $product->image_url }}" alt="" class="w-full h-full object-cover">
+                        </div>
+                    @endif
+                    <div class="p-5">
+                        <h3 class="font-semibold mills-primary mb-1">{{ $product->title }}</h3>
+                        @if($product->description)
+                            <p class="text-sm text-slate-600 mb-4 line-clamp-2">{{ $product->description }}</p>
+                        @else
+                            <p class="text-sm text-slate-500 mb-4">Every {{ $product->order_interval_frequency }} {{ $product->order_interval_unit }}(s)</p>
+                        @endif
+                        <a href="#subscriptions" class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90">Add to my subscription</a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </section>
         @endif
 
         {{-- Section: Featured --}}
