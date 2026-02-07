@@ -1,75 +1,306 @@
-@extends('layouts.account')
+@php
+    $primary = config('mills.primary_color', '#002642');
+    $bg = config('mills.background_color', '#d7ecff');
+    $productImages = config('mills.product_images', []);
+    $defaultProductImage = $productImages['default'] ?? '/images/placeholder-product.svg';
+@endphp
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Account – {{ config('app.name') }}</title>
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
+    <style>
+        .mills-bg { background-color: {{ $bg }}; }
+        .mills-primary { color: {{ $primary }}; }
+        .mills-primary-bg { background-color: {{ $primary }}; }
+        .mills-border { border-color: {{ $primary }}20; }
+    </style>
+</head>
+<body class="min-h-screen mills-bg text-slate-900" x-data="{ toast: null }">
+    {{-- Minimal header: logo + logout --}}
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <a href="{{ route('account.dashboard') }}" class="text-xl font-bold mills-primary tracking-tight">{{ config('app.name') }}</a>
+            <form action="{{ route('logout') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="text-sm font-medium text-slate-600 hover:text-slate-900">Log out</button>
+            </form>
+        </div>
+    </header>
 
-@section('title', 'Dashboard')
+    {{-- In-page navigation --}}
+    <nav class="sticky top-[52px] z-10 bg-white/80 backdrop-blur border-b border-slate-200/60">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-2">
+            <div class="flex flex-wrap gap-2 sm:gap-4 justify-center">
+                <a href="#featured" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Featured</a>
+                <a href="#overview" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Overview</a>
+                <a href="#orders" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Orders</a>
+                <a href="#subscriptions" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">Subscriptions</a>
+                <a href="#my-details" class="px-3 py-1.5 rounded-full text-sm font-medium mills-primary hover:bg-[#00264212]">My details</a>
+            </div>
+        </div>
+    </nav>
 
-@section('content')
-{{-- Welcome headline – user friendly --}}
-<div class="mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-1">Let's make a perfect match</h1>
-    <p class="text-slate-600">Welcome back. Here’s your account at a glance.</p>
-</div>
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-24">
+        @if (session('success'))
+            <div class="mb-6 p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm border border-emerald-200" x-data x-init="setTimeout(() => $el.remove(), 4000)">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="mb-6 p-4 rounded-2xl bg-red-50 text-red-800 text-sm border border-red-200">{{ session('error') }}</div>
+        @endif
 
-{{-- Promoted products – horizontal scroll cards (like image + Mills) --}}
-@if(!empty($promotedProducts))
-<section class="mb-10">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-slate-800">Featured</h2>
-        <span class="text-sm text-slate-500">View all</span>
-    </div>
-    <div class="flex gap-4 overflow-x-auto pb-2 -mx-1" style="scrollbar-width: none; -ms-overflow-style: none;">
-        @foreach($promotedProducts as $promo)
-        @php
-            $bg = match($promo['accent'] ?? 'violet') {
-                'pink' => 'bg-[#fce7f3]',
-                'emerald' => 'bg-[#d1fae5]',
-                default => 'bg-violet-50',
-            };
-            $btn = match($promo['accent'] ?? 'violet') {
-                'pink' => 'bg-pink-500 hover:bg-pink-600',
-                'emerald' => 'bg-emerald-500 hover:bg-emerald-600',
-                default => 'bg-violet-600 hover:bg-violet-700',
-            };
-        @endphp
-        <a href="{{ $promo['link'] ?? '#' }}" class="flex-shrink-0 w-[280px] sm:w-[300px] rounded-2xl {{ $bg }} border border-white/60 p-5 shadow-sm hover:shadow-md transition block">
-            <h3 class="font-semibold text-slate-800 mb-1">{{ $promo['title'] }}</h3>
-            <p class="text-sm text-slate-600 mb-4">{{ $promo['description'] ?? '' }}</p>
-            <span class="inline-flex items-center rounded-xl {{ $btn }} text-white text-sm font-medium px-4 py-2">{{ $promo['cta'] ?? 'Learn more' }}</span>
-        </a>
-        @endforeach
-    </div>
-</section>
-@endif
+        {{-- Section: Featured --}}
+        @if(!empty($promotedProducts))
+        <section id="featured" class="scroll-mt-28 mb-12">
+            <h2 class="text-xl font-bold mills-primary mb-4">What's on the menu</h2>
+            <div class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                @foreach($promotedProducts as $promo)
+                <a href="{{ $promo['link'] ?? '#' }}" class="flex-shrink-0 w-[260px] sm:w-[280px] rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition block">
+                    <h3 class="font-semibold mills-primary mb-1">{{ $promo['title'] }}</h3>
+                    <p class="text-sm text-slate-600 mb-4">{{ $promo['description'] ?? '' }}</p>
+                    <span class="inline-flex items-center rounded-xl mills-primary-bg text-white text-sm font-medium px-4 py-2 hover:opacity-90">{{ $promo['cta'] ?? 'Learn more' }}</span>
+                </a>
+                @endforeach
+            </div>
+        </section>
+        @endif
 
-{{-- Your overview – stat cards (clean, rounded) --}}
-<h2 class="text-lg font-semibold text-slate-800 mb-4">Your overview</h2>
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-2xl border border-violet-100/80 p-5 shadow-sm">
-        <p class="text-slate-500 text-sm">Active subscriptions</p>
-        <p class="text-2xl font-bold text-violet-800 mt-1">{{ $activeSubscriptionsCount }}</p>
-    </div>
-    <div class="bg-white rounded-2xl border border-violet-100/80 p-5 shadow-sm">
-        <p class="text-slate-500 text-sm">Next charge</p>
-        <p class="text-xl font-bold text-slate-800 mt-1">{{ $nextChargeDate ? \Carbon\Carbon::parse($nextChargeDate)->format('M j, Y') : '—' }}</p>
-    </div>
-    <div class="bg-white rounded-2xl border border-violet-100/80 p-5 shadow-sm">
-        <p class="text-slate-500 text-sm">Orders</p>
-        <p class="text-2xl font-bold text-slate-800 mt-1">{{ $ordersCount }}</p>
-    </div>
-    <div class="bg-white rounded-2xl border border-violet-100/80 p-5 shadow-sm">
-        <p class="text-slate-500 text-sm">Last order</p>
-        <p class="text-lg font-semibold text-slate-800 mt-1">
-            @if($lastOrder)
-                {{ $lastOrder['status'] ?? '—' }} · {{ isset($lastOrder['processed_at']) ? \Carbon\Carbon::parse($lastOrder['processed_at'])->format('M j') : '—' }}
+        {{-- Section: Overview --}}
+        <section id="overview" class="scroll-mt-28 mb-12">
+            <h2 class="text-xl font-bold mills-primary mb-4">Your overview</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                    <p class="text-slate-500 text-sm">Active subscriptions</p>
+                    <p class="text-2xl font-bold mills-primary mt-1">{{ $activeSubscriptionsCount }}</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                    <p class="text-slate-500 text-sm">Next charge</p>
+                    <p class="text-lg font-bold text-slate-800 mt-1">{{ $nextChargeDate ? \Carbon\Carbon::parse($nextChargeDate)->format('M j, Y') : '—' }}</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                    <p class="text-slate-500 text-sm">Orders</p>
+                    <p class="text-2xl font-bold text-slate-800 mt-1">{{ $ordersCount }}</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                    <p class="text-slate-500 text-sm">Last order</p>
+                    <p class="text-lg font-semibold text-slate-800 mt-1">
+                        @if($lastOrder)
+                            {{ $lastOrder['status'] ?? '—' }} · {{ isset($lastOrder['processed_at']) ? \Carbon\Carbon::parse($lastOrder['processed_at'])->format('M j') : '—' }}
+                        @else — @endif
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        {{-- Section: Orders (with product images) --}}
+        <section id="orders" class="scroll-mt-28 mb-12">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold mills-primary">Orders</h2>
+                <a href="{{ route('account.orders.index') }}" class="text-sm font-medium mills-primary hover:underline">View all</a>
+            </div>
+            @if(empty($orders))
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center text-slate-600">No orders yet.</div>
             @else
-                —
+                <div class="space-y-4">
+                    @foreach($orders as $order)
+                        @php
+                            $orderId = $order['id'] ?? $order['external_order_id']['order_id'] ?? '—';
+                        @endphp
+                        <a href="{{ route('account.orders.show', $order['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition">
+                            <div class="flex flex-wrap gap-4 items-start">
+                                {{-- Product images from first line items --}}
+                                <div class="flex gap-2 flex-shrink-0">
+                                    @foreach(array_slice($order['line_items'] ?? [], 0, 3) as $item)
+                                        @php
+                                            $img = $item['images'][0]['src'] ?? $item['image']['src'] ?? null;
+                                            if (!$img) {
+                                                $title = $item['title'] ?? '';
+                                                foreach ($productImages as $key => $url) {
+                                                    if ($key !== 'default' && $title && stripos($title, $key) !== false) { $img = $url; break; }
+                                                }
+                                                $img = $img ?? $defaultProductImage;
+                                            }
+                                        @endphp
+                                        <div class="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
+                                            <img src="{{ $img }}" alt="" class="w-full h-full object-cover" onerror="this.src='{{ $defaultProductImage }}'; this.onerror=null;">
+                                        </div>
+                                    @endforeach
+                                    @if(empty($order['line_items']))
+                                        <div class="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center">
+                                            <img src="{{ $defaultProductImage }}" alt="" class="w-10 h-10 object-contain opacity-60">
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-slate-800">Order #{{ $orderId }}</p>
+                                    <p class="text-sm text-slate-500">
+                                        {{ isset($order['processed_at']) ? \Carbon\Carbon::parse($order['processed_at'])->format('M j, Y') : (isset($order['created_at']) ? \Carbon\Carbon::parse($order['created_at'])->format('M j, Y') : '') }}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <x-badge :variant="($order['status'] ?? '') === 'success' ? 'success' : (($order['status'] ?? '') === 'error' ? 'error' : 'default')">{{ $order['status'] ?? '—' }}</x-badge>
+                                    <span class="font-medium text-slate-800">{{ $order['total_price'] ?? '—' }} {{ $order['currency'] ?? 'USD' }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
             @endif
-        </p>
-    </div>
-</div>
+        </section>
 
-{{-- Quick actions – primary CTA style (Mills) --}}
-<div class="flex flex-wrap gap-3">
-    <a href="{{ route('account.orders.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-violet-600 text-white font-medium px-5 py-2.5 hover:bg-violet-700 transition shadow-sm">View orders</a>
-    <a href="{{ route('account.subscriptions.index') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-200 text-violet-700 font-medium px-5 py-2.5 hover:bg-violet-50 transition">View subscriptions</a>
-</div>
-@endsection
+        {{-- Section: Subscriptions --}}
+        <section id="subscriptions" class="scroll-mt-28 mb-12">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold mills-primary">Subscriptions</h2>
+                <a href="{{ route('account.subscriptions.index') }}" class="text-sm font-medium mills-primary hover:underline">View all</a>
+            </div>
+            @if(empty($subscriptions))
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center text-slate-600">No subscriptions.</div>
+            @else
+                <div class="space-y-4">
+                    @foreach(array_slice($subscriptions, 0, 5) as $sub)
+                        <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition">
+                            <div class="flex flex-wrap items-center justify-between gap-4">
+                                <div>
+                                    <p class="font-semibold text-slate-800">{{ $sub['product_title'] ?? 'Subscription' }}</p>
+                                    <p class="text-sm text-slate-500">{{ $sub['variant_title'] ?? '' }} · Next: @if(isset($sub['next_charge_scheduled_at'])){{ \Carbon\Carbon::parse($sub['next_charge_scheduled_at'])->format('M j, Y') }}@else—@endif</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <x-badge :variant="($sub['status'] ?? '') === 'active' ? 'success' : (($sub['status'] ?? '') === 'cancelled' ? 'error' : 'default')">{{ $sub['status'] ?? '—' }}</x-badge>
+                                    <span class="font-medium text-slate-800">{{ $sub['price'] ?? '—' }} {{ $sub['currency'] ?? 'USD' }}</span>
+                                    <span class="text-sm font-medium mills-primary">Manage →</span>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+        {{-- Section: My details (profile + address) --}}
+        <section id="my-details" class="scroll-mt-28 mb-12">
+            <h2 class="text-xl font-bold mills-primary mb-4">My details</h2>
+
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm mb-4">
+                <h3 class="font-semibold mills-primary mb-3">Personal information</h3>
+                <dl class="grid sm:grid-cols-2 gap-2 text-sm">
+                    <dt class="text-slate-500">Name</dt>
+                    <dd class="text-slate-800">{{ $user->first_name ?? '' }} {{ $user->last_name ?? '' }}</dd>
+                    <dt class="text-slate-500">Email</dt>
+                    <dd class="text-slate-800">{{ $user->email }}</dd>
+                </dl>
+            </div>
+
+            @if($addressId && $enableAddressUpdate)
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm" x-data="addressForm({{ json_encode($address ?? []) }}, '{{ $addressId }}')">
+                <h3 class="font-semibold mills-primary mb-3">Shipping address</h3>
+                <form @submit.prevent="save()" class="space-y-4">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">First name</label>
+                            <input type="text" x-model="form.first_name" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Last name</label>
+                            <input type="text" x-model="form.last_name" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                        <input type="text" x-model="form.address1" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Address 2 (optional)</label>
+                        <input type="text" x-model="form.address2" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">City</label>
+                            <input type="text" x-model="form.city" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">State / Province</label>
+                            <input type="text" x-model="form.province" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">ZIP / Postal code</label>
+                            <input type="text" x-model="form.zip" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Country</label>
+                            <input type="text" x-model="form.country_code" maxlength="2" placeholder="US" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Phone (optional)</label>
+                        <input type="text" x-model="form.phone" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-slate-900 focus:border-[#002642] focus:ring-2 focus:ring-[#00264220]">
+                    </div>
+                    <button type="submit" class="rounded-xl mills-primary-bg text-white font-medium px-5 py-2.5 hover:opacity-90" :disabled="saving">
+                        <span x-show="!saving">Save address</span>
+                        <span x-show="saving" x-cloak>Saving...</span>
+                    </button>
+                </form>
+            </div>
+            @elseif($address)
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+                <h3 class="font-semibold mills-primary mb-3">Shipping address</h3>
+                <p class="text-sm text-slate-700">
+                    {{ $address['first_name'] ?? '' }} {{ $address['last_name'] ?? '' }}<br>
+                    {{ $address['address1'] ?? '' }}<br>
+                    @if(!empty($address['address2'])){{ $address['address2'] }}<br>@endif
+                    {{ $address['city'] ?? '' }}, {{ $address['province'] ?? '' }} {{ $address['zip'] ?? '' }}<br>
+                    {{ $address['country_code'] ?? '' }}
+                </p>
+            </div>
+            @endif
+        </section>
+    </main>
+
+    <script>
+    function addressForm(initial, addressId) {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        return {
+            form: {
+                first_name: initial?.first_name ?? '',
+                last_name: initial?.last_name ?? '',
+                address1: initial?.address1 ?? '',
+                address2: initial?.address2 ?? '',
+                city: initial?.city ?? '',
+                province: initial?.province ?? '',
+                zip: initial?.zip ?? '',
+                country_code: initial?.country_code ?? '',
+                phone: initial?.phone ?? '',
+            },
+            addressId,
+            saving: false,
+            async save() {
+                this.saving = true;
+                try {
+                    const res = await fetch('/api/addresses/' + this.addressId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                        body: JSON.stringify(this.form),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.message || 'Failed to save');
+                    if (document.body.__x?.$data?.toast !== undefined) document.body.__x.$data.toast = 'Address saved.';
+                    setTimeout(() => location.reload(), 600);
+                } catch (e) {
+                    alert(e.message);
+                } finally {
+                    this.saving = false;
+                }
+            },
+        };
+    }
+    </script>
+    <div x-show="toast" x-cloak class="fixed bottom-4 right-4 px-4 py-2 rounded-xl shadow-lg bg-slate-800 text-white text-sm" x-transition x-text="toast"></div>
+</body>
+</html>

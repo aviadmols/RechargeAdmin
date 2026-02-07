@@ -201,6 +201,17 @@ class RechargeService
         return $response->json();
     }
 
+    public function getAddress(string $addressId): ?array
+    {
+        $response = $this->client()->get("{$this->baseUrl}/addresses/{$addressId}");
+        if (! $response->successful()) {
+            return null;
+        }
+        $this->markSuccess();
+        $data = $response->json();
+        return $data['address'] ?? $data;
+    }
+
     public function updateShippingAddress(string $addressId, array $payload): array
     {
         $response = $this->client()->put("{$this->baseUrl}/addresses/{$addressId}", $payload);
@@ -209,6 +220,44 @@ class RechargeService
         }
         $this->markSuccess();
         return $response->json();
+    }
+
+    /**
+     * List products configured for subscription in Recharge (linked to Shopify).
+     * Required scope: read_products.
+     */
+    public function listProducts(array $params = []): array
+    {
+        $query = array_merge(['limit' => 250], $params);
+        $response = $this->client()->get("{$this->baseUrl}/products", $query);
+        if (! $response->successful()) {
+            throw new \RuntimeException('Recharge products list failed: ' . $response->body());
+        }
+        $this->markSuccess();
+        return $response->json();
+    }
+
+    /**
+     * Create a new subscription (add a product to the customer – same address).
+     * Required scope: write_subscriptions.
+     * Payload typically: address_id, external_variant_id (Shopify variant ID), quantity,
+     * order_interval_frequency, order_interval_unit, and optionally next_charge_scheduled_at.
+     *
+     * @see https://developer.rechargepayments.com/2021-11/subscriptions/subscriptions_create
+     */
+    public function createSubscription(array $payload): array
+    {
+        $response = $this->client()->post("{$this->baseUrl}/subscriptions", $payload);
+        if (! $response->successful()) {
+            throw new \RuntimeException('Recharge create subscription failed: ' . $response->body());
+        }
+        $this->markSuccess();
+        $data = $response->json();
+        $subscription = $data['subscription'] ?? $data;
+        if (! empty($subscription['address_id'])) {
+            $this->invalidateSubscriptionCache(null, (string) ($subscription['customer_id'] ?? ''));
+        }
+        return $data;
     }
 
     public function testConnection(): bool

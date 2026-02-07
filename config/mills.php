@@ -2,13 +2,14 @@
 
 return [
 
+    'primary_color' => '#002642',
+    'background_color' => '#d7ecff',
+
     /*
     |--------------------------------------------------------------------------
     | Promoted products (shown at top of account dashboard)
     |--------------------------------------------------------------------------
-    | Each item: title, description, cta (button text), link (URL), optional image
     */
-
     'promoted_products' => [
         [
             'title' => 'Your Dog\'s Magic Daily Pack',
@@ -31,6 +32,19 @@ return [
             'link' => '#',
             'accent' => 'emerald',
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product images fallback (product title or key -> image URL)
+    |--------------------------------------------------------------------------
+    | Used when order line_items have no image. Key can be product title substring.
+    */
+    'product_images' => [
+        'default' => '/images/placeholder-product.svg',
+        'Chicken' => '/images/products/chicken.png',
+        'Lamb' => '/images/products/lamb.png',
+        'Salmon' => '/images/products/salmon.png',
     ],
 
 ];

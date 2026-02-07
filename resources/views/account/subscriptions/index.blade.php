@@ -3,17 +3,18 @@
 @section('title', 'Subscriptions')
 
 @section('content')
-<h1 class="text-2xl font-bold text-slate-800 mb-2">Subscriptions</h1>
+<div class="mb-6">
+    <a href="{{ route('account.dashboard') }}#subscriptions" class="mills-primary text-sm font-medium hover:underline">&larr; Back to my account</a>
+</div>
+<h1 class="text-2xl font-bold mills-primary mb-2">Subscriptions</h1>
 <p class="text-slate-600 text-sm mb-6">Manage your active subscriptions and delivery schedule.</p>
 
 @if(empty($subscriptions))
-    <x-card class="p-8">
-        <x-empty-state title="No subscriptions" />
-    </x-card>
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center text-slate-600">No subscriptions.</div>
 @else
     <div class="space-y-4">
         @foreach($subscriptions as $sub)
-            <x-card class="p-5 hover:shadow-md transition">
+            <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <p class="font-semibold text-slate-800">{{ $sub['product_title'] ?? 'Subscription' }}</p>
@@ -28,10 +29,10 @@
                             {{ $sub['status'] ?? '—' }}
                         </x-badge>
                         <span class="font-medium text-slate-800">{{ $sub['price'] ?? '—' }} {{ $sub['currency'] ?? 'USD' }}</span>
-                        <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="text-violet-600 text-sm font-medium hover:underline">Manage</a>
+                        <span class="mills-primary text-sm font-medium">Manage →</span>
                     </div>
                 </div>
-            </x-card>
+            </a>
         @endforeach
     </div>
 @endif
