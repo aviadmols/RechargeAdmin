@@ -18,6 +18,7 @@ class SubscriptionProduct extends Model
         'original_price',
         'discount_percent',
         'default_quantity',
+        'first_order_price',
         'order_interval_frequency',
         'order_interval_unit',
         'sort_order',
@@ -33,6 +34,7 @@ class SubscriptionProduct extends Model
             'original_price' => 'decimal:2',
             'discount_percent' => 'integer',
             'default_quantity' => 'integer',
+            'first_order_price' => 'decimal:2',
         ];
     }
 

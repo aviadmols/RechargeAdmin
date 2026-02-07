@@ -103,6 +103,25 @@ class RechargeService
         return $data['order'] ?? $data;
     }
 
+    /**
+     * List charges (store-wide). Use scheduled_at_min, sort_by=scheduled_at-asc to get next upcoming charge.
+     *
+     * @see https://developer.rechargepayments.com/2021-11/charges/charge_list
+     */
+    public function listCharges(array $params = []): array
+    {
+        $query = array_merge(['limit' => 50], $params);
+        $response = $this->client('2021-11')->get("{$this->baseUrl}/charges", $query);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Recharge charges list failed: ' . $response->body());
+        }
+
+        $this->markSuccess();
+
+        return $response->json();
+    }
+
     public function listSubscriptions(string $customerId, array $params = []): array
     {
         $ttl = (int) (RechargeSettings::first()?->cache_ttl_subscriptions ?? 60);
@@ -201,7 +220,7 @@ class RechargeService
     {
         $this->invalidateSubscriptionCache($subscriptionId);
 
-        $response = $this->client()->post("{$this->baseUrl}/subscriptions/{$subscriptionId}/pause");
+        $response = $this->client('2021-11')->post("{$this->baseUrl}/subscriptions/{$subscriptionId}/pause", []);
 
         if (! $response->successful()) {
             throw new \RuntimeException('Recharge pause subscription failed: ' . $response->body());
@@ -221,7 +240,7 @@ class RechargeService
     {
         $this->invalidateSubscriptionCache($subscriptionId);
 
-        $response = $this->client()->post("{$this->baseUrl}/subscriptions/{$subscriptionId}/activate");
+        $response = $this->client('2021-11')->post("{$this->baseUrl}/subscriptions/{$subscriptionId}/activate", []);
 
         if (! $response->successful()) {
             throw new \RuntimeException('Recharge resume subscription failed: ' . $response->body());
@@ -357,6 +376,44 @@ class RechargeService
         if ($subscriptionId !== '') {
             $this->invalidateSubscriptionCache($subscriptionId, $customerId !== '' ? $customerId : null);
         } elseif ($customerId !== '') {
+            Cache::forget("recharge.subscriptions.{$customerId}");
+        }
+
+        return $data;
+    }
+
+    /**
+     * Create a one-time purchase (not a subscription). Uses Recharge Onetimes API 2021-11.
+     * Payload: address_id, quantity, external_variant_id, next_charge_scheduled_at (or add_to_next_charge), optional price.
+     *
+     * @see https://developer.rechargepayments.com/2021-11/onetimes/onetimes_create
+     */
+    public function createOnetime(array $payload): array
+    {
+        if (isset($payload['external_variant_id']) && ! is_array($payload['external_variant_id'])) {
+            $payload['external_variant_id'] = [
+                'ecommerce' => (string) $payload['external_variant_id'],
+            ];
+        }
+
+        if (isset($payload['external_product_id']) && ! is_array($payload['external_product_id'])) {
+            $payload['external_product_id'] = [
+                'ecommerce' => (string) $payload['external_product_id'],
+            ];
+        }
+
+        $response = $this->client('2021-11')->post("{$this->baseUrl}/onetimes", $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Recharge create onetime failed: ' . $response->body());
+        }
+
+        $this->markSuccess();
+
+        $data = $response->json();
+        $onetime = $data['onetime'] ?? $data;
+        $customerId = (string) ($onetime['customer_id'] ?? '');
+        if ($customerId !== '') {
             Cache::forget("recharge.subscriptions.{$customerId}");
         }
 

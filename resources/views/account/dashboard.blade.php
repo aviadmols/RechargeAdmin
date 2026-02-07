@@ -105,14 +105,24 @@
                         @if($product->description)
                             <p class="text-sm text-[#666] leading-snug line-clamp-2 mb-3">{{ Str::limit(strip_tags($product->description), 100) }}</p>
                         @endif
-                        <form action="{{ route('account.products.add') }}" method="POST" class="mt-2 pt-2 border-t border-slate-200" x-data="{ submitting: false }" @submit="submitting = true">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                            <button type="submit" class="w-full rounded-full mills-primary-bg text-white text-sm font-semibold py-2.5 px-4 hover:opacity-90 disabled:opacity-70 transition" :disabled="submitting">
-                                <span x-show="!submitting">Add to my box</span>
-                                <span x-show="submitting" x-cloak>Adding…</span>
-                            </button>
-                        </form>
+                        <div class="mt-2 pt-2 border-t border-slate-200 flex flex-col gap-2" x-data="{ submitting: false }">
+                            <form action="{{ route('account.products.add') }}" method="POST" @submit="submitting = true">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <button type="submit" class="w-full rounded-full mills-primary-bg text-white text-sm font-semibold py-2.5 px-4 hover:opacity-90 disabled:opacity-70 transition" :disabled="submitting">
+                                    <span x-show="!submitting">Add to my box</span>
+                                    <span x-show="submitting" x-cloak>Adding…</span>
+                                </button>
+                            </form>
+                            <form action="{{ route('account.products.buy-once') }}" method="POST" @submit="submitting = true">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <button type="submit" class="w-full rounded-full border-2 border-[#002642] text-[#002642] text-sm font-semibold py-2 px-4 hover:bg-[#002642]/5 disabled:opacity-70 transition" :disabled="submitting">
+                                    <span x-show="!submitting">Buy once (no subscription)</span>
+                                    <span x-show="submitting" x-cloak>Adding…</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 @endforeach
@@ -180,7 +190,7 @@
                         <a href="{{ route('account.orders.show', $order['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition">
                             <div class="flex flex-wrap gap-4 items-start">
                                 {{-- Product images from first line items --}}
-                                <div class="flex gap-2 flex-shrink-0">
+                                <div class="flex gap-2 flex-shrink-0" style=" min-width: 100%;">
                                     @foreach(array_slice($order['line_items'] ?? [], 0, 3) as $item)
                                         @php
                                             $img = $item['images'][0]['src'] ?? $item['image']['src'] ?? null;

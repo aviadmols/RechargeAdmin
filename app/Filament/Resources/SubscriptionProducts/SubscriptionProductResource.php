@@ -85,6 +85,12 @@ class SubscriptionProductResource extends Resource
                     ->numeric()
                     ->minValue(1)
                     ->default(1),
+                TextInput::make('first_order_price')
+                    ->label('First order price / OTP ($)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->step(0.01)
+                    ->helperText('Price sent to Recharge for the subscription (first and recurring charge). Leave empty to use store default.'),
                 TextInput::make('order_interval_frequency')
                     ->label('Order interval (frequency)')
                     ->numeric()
