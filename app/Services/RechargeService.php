@@ -32,14 +32,17 @@ class RechargeService
         $this->retryTimes = config('recharge.retry_times', 2);
     }
 
-    protected function client()
+    protected function client(?string $version = null): \Illuminate\Http\Client\PendingRequest
     {
         if (! $this->token || ! $this->baseUrl) {
             throw new \RuntimeException('Recharge API not configured.');
         }
+        $apiVersion = $version ?? $this->version ?? config('recharge.api_version', '2021-11');
+        $apiVersion = $apiVersion !== '' && $apiVersion !== null ? $apiVersion : '2021-11';
+
         return Http::withHeaders([
             'X-Recharge-Access-Token' => $this->token,
-            'X-Recharge-Version' => $this->version ?? '2021-11',
+            'X-Recharge-Version' => $apiVersion,
             'X-Request-ID' => Str::uuid()->toString(),
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
@@ -240,14 +243,13 @@ class RechargeService
     /**
      * Create a new subscription (add a product to the customer – same address).
      * Required scope: write_subscriptions.
-     * Payload typically: address_id, external_variant_id (Shopify variant ID), quantity,
-     * order_interval_frequency, order_interval_unit, and optionally next_charge_scheduled_at.
+     * Uses Recharge API version 2021-11 and X-Recharge-Version header.
      *
      * @see https://developer.rechargepayments.com/2021-11/subscriptions/subscriptions_create
      */
     public function createSubscription(array $payload): array
     {
-        $response = $this->client()->post("{$this->baseUrl}/subscriptions", $payload);
+        $response = $this->client('2021-11')->post("{$this->baseUrl}/subscriptions", $payload);
         if (! $response->successful()) {
             throw new \RuntimeException('Recharge create subscription failed: ' . $response->body());
         }
