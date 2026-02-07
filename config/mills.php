@@ -41,10 +41,10 @@ return [
     | Used when order line_items have no image. Key can be product title substring.
     */
     'product_images' => [
-        'default' => '/images/placeholder-product.svg',
-        'Chicken' => '/images/products/chicken.png',
-        'Lamb' => '/images/products/lamb.png',
-        'Salmon' => '/images/products/salmon.png',
+        'default' => 'https://cdn.shopify.com/s/files/1/0723/6000/1791/files/Screenshot_2025-07-15_at_11.34.41.webp?v=1752568560',
+        'Chicken' => 'https://cdn.shopify.com/s/files/1/0723/6000/1791/files/chickenMDN.webp?v=1754822127',
+        'Lamb' => 'https://cdn.shopify.com/s/files/1/0723/6000/1791/files/lambSMN.webp?v=1754822130',
+        'Salmon' => 'https://cdn.shopify.com/s/files/1/0723/6000/1791/files/Screenshot_2025-07-15_at_11.34.41.webp?v=1752568560',
     ],
 
 ];

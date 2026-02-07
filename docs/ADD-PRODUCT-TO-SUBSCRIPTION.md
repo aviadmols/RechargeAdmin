@@ -1,5 +1,24 @@
 # הוספת מוצרים למנוי (Recharge + Shopify)
 
+## הגדרת מוצרים באדמין (ידנית)
+
+**קטלוג המוצרים** שאפשר להציע ב"הוסף מוצר" מנוהל **באפליקציה**:
+
+1. התחבר לאדמין: **`/admin`**
+2. בתפריט: **Subscription products** (או "Portal" אם הוגדר קבוצה)
+3. הוסף רשומה לכל מוצר שאתה רוצה להציע:
+   - **Title** – שם לתצוגה
+   - **Shopify Variant ID** – חובה. מזהה הווריאנט ב-Shopify (מספר או `gid://shopify/ProductVariant/...` לפי מה ש-Recharge מצפה)
+   - **Recharge Product ID** – אופציונלי (להזכר)
+   - **Image URL** – קישור לתמונה
+   - **Order interval** – תדירות (למשל 1 + month = כל חודש)
+   - **Sort order** – סדר בתצוגה
+   - **Active** – סמן כדי שהמוצר יופיע בפורטל
+
+הנתונים נשמרים בטבלה **`subscription_products`**. דף "הוסף מוצר" בפורטל (כשתוסיף) יטען מוצרים מ-`SubscriptionProduct::active()->ordered()->get()` וישתמש ב-`shopify_variant_id` ב-`createSubscription()`.
+
+---
+
 ## איך זה עובד ב-Recharge
 
 ב-Recharge **כל מנוי = מוצר אחד** (שורה אחת). אין "הוספת שורה" למנוי קיים.
