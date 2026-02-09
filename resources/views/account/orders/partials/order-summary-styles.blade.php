@@ -17,7 +17,7 @@
   .order-summary {
     max-width: 100%;
     margin: 0 auto;
-    background: #D7ECFF;
+    background: #fff;
     padding: var(--order-spacing-xl) var(--order-spacing-md);
     font-family: var(--order-font);
     position: relative;

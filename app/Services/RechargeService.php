@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\RechargeSettings;
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -49,12 +50,25 @@ class RechargeService
         ])->timeout($this->timeout)->retry($this->retryTimes, 500);
     }
 
+    /**
+     * Run a Recharge request; on 429 Too Many Requests wait 60s and retry once.
+     */
+    protected function executeWith429Retry(callable $request): Response
+    {
+        $response = $request();
+        if ($response->status() === 429) {
+            sleep(60);
+            $response = $request();
+        }
+        return $response;
+    }
+
     public function findCustomerByEmail(string $email): ?array
     {
-        $response = $this->client()->get("{$this->baseUrl}/customers", [
+        $response = $this->executeWith429Retry(fn () => $this->client()->get("{$this->baseUrl}/customers", [
             'email' => $email,
             'limit' => 1,
-        ]);
+        ]));
 
         if (! $response->successful()) {
             return null;
@@ -69,7 +83,7 @@ class RechargeService
     }
 
     /**
-     * Retrieve a single customer by ID from Recharge.
+     * Retrieve a single customer by ID from Recharge. Cached 5 min to reduce API calls.
      *
      * @see https://developer.rechargepayments.com/2021-11/customers/customers_retrieve
      */
@@ -78,13 +92,21 @@ class RechargeService
         if ($customerId === '') {
             return null;
         }
-        $response = $this->client('2021-11')->get("{$this->baseUrl}/customers/{$customerId}");
+        $ttl = 300; // 5 min
+        $key = "recharge.customer.{$customerId}";
+        $cached = Cache::get($key);
+        if ($cached !== null) {
+            return $cached;
+        }
+        $response = $this->executeWith429Retry(fn () => $this->client('2021-11')->get("{$this->baseUrl}/customers/{$customerId}"));
         if (! $response->successful()) {
             return null;
         }
         $this->markSuccess();
         $data = $response->json();
-        return $data['customer'] ?? $data;
+        $customer = $data['customer'] ?? $data;
+        Cache::put($key, $customer, $ttl);
+        return $customer;
     }
 
     public function listOrders(string $customerId, array $params = []): array
@@ -95,7 +117,7 @@ class RechargeService
         return Cache::remember($key, $ttl, function () use ($customerId, $params) {
             $query = array_merge(['customer_id' => $customerId, 'limit' => 50], $params);
 
-            $response = $this->client()->get("{$this->baseUrl}/orders", $query);
+            $response = $this->executeWith429Retry(fn () => $this->client()->get("{$this->baseUrl}/orders", $query));
 
             if (! $response->successful()) {
                 throw new \RuntimeException('Recharge orders list failed: ' . $response->body());
@@ -149,7 +171,7 @@ class RechargeService
         return Cache::remember($key, $ttl, function () use ($customerId, $params) {
             $query = array_merge(['customer_id' => $customerId, 'limit' => 250], $params);
 
-            $response = $this->client()->get("{$this->baseUrl}/subscriptions", $query);
+            $response = $this->executeWith429Retry(fn () => $this->client()->get("{$this->baseUrl}/subscriptions", $query));
 
             if (! $response->successful()) {
                 throw new \RuntimeException('Recharge subscriptions list failed: ' . $response->body());
@@ -171,7 +193,7 @@ class RechargeService
             return $cached;
         }
 
-        $response = $this->client()->get("{$this->baseUrl}/subscriptions/{$subscriptionId}");
+        $response = $this->executeWith429Retry(fn () => $this->client()->get("{$this->baseUrl}/subscriptions/{$subscriptionId}"));
 
         if (! $response->successful()) {
             return null;
@@ -191,6 +213,7 @@ class RechargeService
     {
         Cache::forget("recharge.subscriptions.{$customerId}");
         Cache::forget("recharge.orders.{$customerId}");
+        Cache::forget("recharge.customer.{$customerId}");
     }
 
     public function updateNextChargeDate(string $subscriptionId, Carbon $date): array
@@ -323,7 +346,7 @@ class RechargeService
 
     public function getAddress(string $addressId): ?array
     {
-        $response = $this->client()->get("{$this->baseUrl}/addresses/{$addressId}");
+        $response = $this->executeWith429Retry(fn () => $this->client()->get("{$this->baseUrl}/addresses/{$addressId}"));
 
         if (! $response->successful()) {
             return null;

@@ -17,13 +17,13 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/verify', [LoginController::class, 'showVerifyForm'])->name('verify');
 });
 
-// Form submit (OTP, password) – strict limit vs brute force (10 per 15 min)
-Route::middleware('throttle:10,15')->group(function () {
+// Form submit (OTP, password) – limit to avoid 429 for normal use (30 per minute)
+Route::middleware('throttle:30,1')->group(function () {
     Route::post('/login', [LoginController::class, 'requestOtp'])->name('login.request');
     Route::post('/login/password', [LoginController::class, 'loginWithPassword'])->name('login.password');
     Route::post('/verify', [LoginController::class, 'verifyOtp'])->name('verify.submit');
 });
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('throttle:10,1');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('throttle:30,1');
 
 Route::middleware(['auth:portal'])->prefix('account')->name('account.')->group(function () {
     Route::get('/', [AccountDashboardController::class, 'index'])->name('dashboard');
