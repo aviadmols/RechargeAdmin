@@ -29,4 +29,9 @@ class PortalCustomer extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function auditLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'recharge_customer_id', 'recharge_customer_id');
+    }
 }

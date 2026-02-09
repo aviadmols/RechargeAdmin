@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsurePortalSession;
+use App\Http\Middleware\LogPortalActivity;
 use App\Http\Middleware\EnsureSubscriptionOwnership;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Database\QueryException;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'portal' => EnsurePortalSession::class,
+            'log.portal.activity' => LogPortalActivity::class,
             'subscription.owner' => EnsureSubscriptionOwnership::class,
         ]);
         $middleware->append(SecurityHeaders::class);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\PortalCustomer;
+use App\Services\AuditLogService;
 use App\Services\OtpService;
 use App\Services\RechargeService;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +15,8 @@ class LoginController extends Controller
 {
     public function __construct(
         protected OtpService $otpService,
-        protected RechargeService $recharge
+        protected RechargeService $recharge,
+        protected AuditLogService $audit
     ) {}
 
     public function showLoginForm(): View
@@ -33,6 +35,17 @@ class LoginController extends Controller
             $request->only('email', 'password'),
             (bool) $request->boolean('remember')
         )) {
+            $user = auth()->guard('portal')->user();
+            $this->audit->log(
+                'portal.login',
+                $user->email,
+                $user->recharge_customer_id ?? null,
+                'session',
+                'password',
+                'success',
+                null,
+                []
+            );
             $request->session()->regenerate();
             return redirect()->intended(route('account.dashboard'));
         }
@@ -102,6 +115,17 @@ class LoginController extends Controller
         );
 
         auth()->guard('portal')->login($portalCustomer, true);
+
+        $this->audit->log(
+            'portal.login_otp',
+            $portalCustomer->email,
+            $portalCustomer->recharge_customer_id ?? null,
+            'session',
+            'otp',
+            'success',
+            null,
+            []
+        );
 
         return redirect()->intended(route('account.dashboard'));
     }

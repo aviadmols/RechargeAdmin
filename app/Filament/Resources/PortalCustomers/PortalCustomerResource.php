@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PortalCustomers;
 
 use App\Filament\Resources\PortalCustomers\Pages\ManagePortalCustomers;
+use App\Filament\Resources\PortalCustomers\Pages\ViewPortalCustomer;
 use App\Models\PortalCustomer;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -117,10 +118,18 @@ class PortalCustomerResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            \App\Filament\Resources\PortalCustomers\RelationManagers\AuditLogsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ManagePortalCustomers::route('/'),
+            'view' => ViewPortalCustomer::route('/{record}'),
         ];
     }
 }

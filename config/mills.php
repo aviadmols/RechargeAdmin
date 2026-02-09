@@ -15,7 +15,7 @@ return [
             'title' => 'Your Dog\'s Magic Daily Pack',
             'description' => 'Customized, pre-portioned, premium food — every day.',
             'cta' => 'Customize Your Pack',
-            'link' => '#',
+            'link' => 'https://millsdailypacks.com/pages/quiz-main?flavors=open',
             'accent' => 'violet', // violet, pink, emerald
         ],
         [

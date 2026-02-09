@@ -2,6 +2,21 @@
 
 @section('title', 'Subscription')
 
+@push('styles')
+<style>
+/* Icon List benefits (subscription page) */
+.icon-list-common.icon-list-set { width: 640px; max-width: 100%; padding-top: 50px!important; margin: 0 auto 24px auto !important; }
+.icon-list-common .icon-items-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.icon-list-common.icon-list-set .card { border-radius: 8px; padding: 16px; background-color: #ebf5fa; }
+.icon-list-common.icon-list-set .icons-list-item { display: flex; flex-direction: column; align-items: center; text-align: center; flex: 0 0 calc(33.333% - 16px); gap: 5px; min-width: 120px; }
+.icon-list-common.icon-list-set .icons-list-item-text { opacity: 0.7; text-align: center; font-weight: 600 !important; line-height: 1.2em !important; font-size: 12px !important; letter-spacing: -0.06rem !important; color: #0b2b4a; }
+.icon-list-common.icon-list-set .svgWrapper { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.icon-list-common.icon-list-set .svgWrapper svg, .icon-list-common.icon-list-set .svgWrapper img, .icon-list-common.icon-list-set .svgWrapper i { width: 100%; height: 100%; object-fit: contain; display: flex; align-items: center; justify-content: center; }
+.icon-list-common.icon-list-set .svgWrapper i { font-size: 32px; color: #0b2b4a; }
+.icon-list-common.icon-list-set .title h3 { text-align: center; font-size: 24px; margin-bottom: 24px; color: #0b2b4a; }
+</style>
+@endpush
+
 @section('content')
 <div class="mb-6">
     <a href="{{ route('account.dashboard') }}#subscriptions" class="mills-primary text-sm font-medium hover:underline">&larr; Back to my account</a>
@@ -105,4 +120,6 @@ function subscriptionActions(id) {
 }
 </script>
 @endif
+
+@include('account.subscriptions.partials.icon-list-benefits')
 @endsection

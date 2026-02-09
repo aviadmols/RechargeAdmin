@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\AccountDashboardController;
 use App\Http\Controllers\Account\AddProductController;
 use App\Http\Controllers\Account\OrderHistoryController;
+use App\Http\Controllers\Account\ProductController;
 use App\Http\Controllers\Account\SubscriptionController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\SubscriptionActionController;
@@ -25,8 +26,9 @@ Route::middleware('throttle:30,1')->group(function () {
 });
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('throttle:30,1');
 
-Route::middleware(['auth:portal'])->prefix('account')->name('account.')->group(function () {
+Route::middleware(['auth:portal', 'log.portal.activity'])->prefix('account')->name('account.')->group(function () {
     Route::get('/', [AccountDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
     Route::post('/products/add', [AddProductController::class, 'store'])->name('products.add');
     Route::post('/products/buy-once', [AddProductController::class, 'buyOnce'])->name('products.buy-once');
     Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders.index');
@@ -35,7 +37,7 @@ Route::middleware(['auth:portal'])->prefix('account')->name('account.')->group(f
     Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
 });
 
-Route::middleware(['auth:portal'])->prefix('api')->group(function () {
+Route::middleware(['auth:portal', 'log.portal.activity'])->prefix('api')->group(function () {
     Route::middleware('subscription.owner')->group(function () {
         Route::post('/subscriptions/{id}/next-charge-date', [SubscriptionActionController::class, 'updateNextChargeDate'])->name('api.subscriptions.next-charge-date');
         Route::post('/subscriptions/{id}/cancel', [SubscriptionActionController::class, 'cancel'])->name('api.subscriptions.cancel');

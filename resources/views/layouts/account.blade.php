@@ -13,7 +13,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
     <style>
-        .mills-bg { background-color: {{ $bg }}; }
+        .mills-bg { background-color: #f9f6f1; }
         .mills-primary { color: {{ $primary }}; }
         .mills-primary-bg { background-color: {{ $primary }}; }
     </style>

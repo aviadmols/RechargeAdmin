@@ -1,4 +1,17 @@
 @import 'tailwindcss';
+@import './footer-modern.css';
+
+/* Portal headings – consistent weight, line-height, letter-spacing */
+body.mills-bg h1,
+body.mills-bg h2,
+body.mills-bg h3,
+body.mills-bg h4,
+body.mills-bg h5,
+body.mills-bg h6 {
+  font-weight: 600 !important;
+  line-height: 1.2em !important;
+  letter-spacing: -0.07rem !important;
+}
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
