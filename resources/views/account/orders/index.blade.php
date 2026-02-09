@@ -49,7 +49,7 @@
                         </div>
                         <div class="order-item-meta">{{ $date }}</div>
                     </div>
-                    <div class="order-item-right">{{ $total }} {{ $currency }}</div>
+                    <div class="order-item-right">@if(isset($total) && $total !== '' && $total !== null && $total !== '—'){{ $total }} {{ $currency }}@else Free @endif</div>
                 </a>
             @endforeach
         </ul>

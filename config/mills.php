@@ -4,6 +4,7 @@ return [
 
     'primary_color' => '#002642',
     'background_color' => '#d7ecff',
+    'logo_url' => 'https://millsdailypacks.com/cdn/shop/files/logo.svg?v=1730033744&width=200',
 
     /*
     |--------------------------------------------------------------------------

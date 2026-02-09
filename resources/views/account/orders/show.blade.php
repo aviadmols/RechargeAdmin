@@ -51,7 +51,7 @@
                         <div class="order-item-meta">{{ $variant }}</div>
                     @endif
                 </div>
-                <div class="order-item-right">{{ $price }} {{ $currency }}</div>
+                <div class="order-item-right">@if(isset($price) && $price !== '' && $price !== null && $price !== '—'){{ $price }} {{ $currency }}@else Free @endif</div>
             </li>
         @endforeach
     </ul>

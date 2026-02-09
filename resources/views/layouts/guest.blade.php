@@ -8,7 +8,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4" style="background-color: #d7ecff">
+<body class="min-h-screen mills-bg flex flex-col items-center justify-center p-4" style="background-color: #d7ecff">
     <main class="w-full max-w-md">
         @yield('content')
     </main>

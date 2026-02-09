@@ -60,10 +60,10 @@
     </style>
 </head>
 <body class="min-h-screen mills-bg text-slate-900" x-data="{ submitting: false }">
-    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60 shadow-sm">
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60 ">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="{{ route('account.dashboard') }}" class="text-xl font-bold mills-primary tracking-tight">{{ config('app.name') }}</a>
+                <a href="{{ route('account.dashboard') }}" class="inline-block"><img src="{{ config('mills.logo_url') }}" alt="{{ config('app.name') }}" class="h-9 w-auto" /></a>
                 <a href="{{ route('account.dashboard') }}#products" class="text-sm font-medium text-slate-600 hover:text-slate-900">← All products</a>
             </div>
             <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -151,7 +151,7 @@
         </section>
 
         {{-- FAQ --}}
-        <section class="px-4 sm:px-6 pb-12 faq padding-bottom-50">
+        <section class="px-4 sm:px-6 pb-12 faq padding-bottom-50 padding-top-50" >
             <h2 class="text-xl font-bold mills-primary text-center mb-6">FAQ</h2>
             <div class="max-w-2xl mx-auto space-y-0">
                 <details class="faq-details">

@@ -19,6 +19,7 @@
         .mills-primary { color: {{ $primary }}; }
         .mills-primary-bg { background-color: {{ $primary }}; }
         .mills-border { border-color: {{ $primary }}20; }
+        .text-slate-800 {}
         /* Icon List benefits */
         .icon-list-common.icon-list-set { width: 640px; max-width: 100%; padding-top: 50px!important; margin: 0 auto 24px auto !important; }
         .icon-list-common .icon-items-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
@@ -33,9 +34,9 @@
 </head>
 <body class="min-h-screen mills-bg text-slate-900" x-data="{ toast: null }">
     {{-- Minimal header: logo + logout --}}
-    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60 shadow-sm">
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200/60">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            <a href="{{ route('account.dashboard') }}" class="text-xl font-bold mills-primary tracking-tight">{{ config('app.name') }}</a>
+            <a href="{{ route('account.dashboard') }}" class="inline-block"><img src="{{ config('mills.logo_url') }}" alt="{{ config('app.name') }}" class="h-9 w-auto" /></a>
             <form action="{{ route('logout') }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="text-sm font-medium text-slate-600 hover:text-slate-900">Log out</button>
@@ -163,11 +164,11 @@
                 <h3 class="text-lg font-semibold text-slate-700 mb-3">Active subscriptions</h3>
                 <div class="space-y-3">
                     @foreach($activeSubsList as $sub)
-                        <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition">
+                        <a href="{{ route('account.subscriptions.show', $sub['id']) }}" class="block bg-white rounded-2xl border border-slate-200/80 p-4 transition">
                             <div class="flex flex-wrap items-center justify-between gap-3">
                                 <div>
                                     <p class="font-semibold text-slate-800">{{ $sub['product_title'] ?? 'Subscription' }}</p>
-                                    <p class="text-sm text-slate-500">{{ $sub['variant_title'] ?? '' }} · Next: @if(isset($sub['next_charge_scheduled_at'])){{ \Carbon\Carbon::parse($sub['next_charge_scheduled_at'])->format('M j, Y') }}@else—@endif</p>
+                                    <p class="text-sm text-slate-500">{{ $sub['variant_title'] ?? '' }} · Next delivery: @if(isset($sub['next_charge_scheduled_at'])){{ \Carbon\Carbon::parse($sub['next_charge_scheduled_at'])->format('M j, Y') }}@else—@endif</p>
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <x-badge variant="success">Active</x-badge>
@@ -215,7 +216,7 @@
                                 @foreach($orders as $order)
                                     @php $orderId = $order['id'] ?? $order['external_order_id']['order_id'] ?? '—'; @endphp
                                     <a href="{{ route('account.orders.show', $order['id']) }}" class="block rounded-xl border border-slate-200/80 p-4 hover:bg-slate-50 transition">
-                                        <div class="flex flex-wrap gap-3 items-center">
+                                        <div class="grid grid-cols-1 gap-3 md:flex md:flex-wrap md:items-center">
                                             <div class="flex gap-2 flex-shrink-0">
                                                 @foreach(array_slice($order['line_items'] ?? [], 0, 3) as $item)
                                                     @php
@@ -231,11 +232,11 @@
                                                 @endif
                                             </div>
                                             <div class="min-w-0 flex-1">
-                                                <p class="font-semibold text-slate-800">Order #{{ $orderId }}</p>
+                                                <p class="order-item-title">Order #{{ $orderId }}</p>
                                                 <p class="text-sm text-slate-500">{{ isset($order['processed_at']) ? \Carbon\Carbon::parse($order['processed_at'])->format('M j, Y') : (isset($order['created_at']) ? \Carbon\Carbon::parse($order['created_at'])->format('M j, Y') : '') }}</p>
                                             </div>
                                             <x-badge :variant="($order['status'] ?? '') === 'success' ? 'success' : (($order['status'] ?? '') === 'error' ? 'error' : 'default')">{{ $order['status'] ?? '—' }}</x-badge>
-                                            <span class="font-medium text-slate-800 text-sm">{{ $order['total_price'] ?? '—' }} {{ $order['currency'] ?? 'USD' }}</span>
+                                            <span class="font-medium text-slate-800 text-sm">@if(isset($order['total_price']) && $order['total_price'] !== '' && $order['total_price'] !== null){{ $order['total_price'] }} {{ $order['currency'] ?? 'USD' }}@else Free @endif</span>
                                         </div>
                                     </a>
                                 @endforeach
@@ -271,7 +272,7 @@
                                         <div class="flex flex-wrap items-center justify-between gap-3">
                                             <div>
                                                 <p class="font-semibold text-slate-800">{{ $sub['product_title'] ?? 'Subscription' }}</p>
-                                                <p class="text-sm text-slate-500">{{ $sub['variant_title'] ?? '' }} · Next: @if(isset($sub['next_charge_scheduled_at'])){{ \Carbon\Carbon::parse($sub['next_charge_scheduled_at'])->format('M j, Y') }}@else—@endif</p>
+                                                <p class="text-sm text-slate-500">{{ $sub['variant_title'] ?? '' }} · Next delivery: @if(isset($sub['next_charge_scheduled_at'])){{ \Carbon\Carbon::parse($sub['next_charge_scheduled_at'])->format('M j, Y') }}@else—@endif</p>
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <x-badge :variant="($sub['status'] ?? '') === 'active' ? 'success' : (($sub['status'] ?? '') === 'cancelled' ? 'error' : 'default')">{{ $sub['status'] ?? '—' }}</x-badge>

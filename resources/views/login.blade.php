@@ -5,7 +5,7 @@
 @section('content')
 <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 p-8 max-w-md w-full">
     <div class="mb-6">
-        <a href="{{ url('/') }}" class="text-xl font-bold tracking-tight" style="color: #002642">{{ config('app.name') }}</a>
+        <a href="{{ url('/') }}" class="inline-block"><img src="{{ config('mills.logo_url') }}" alt="{{ config('app.name') }}" class="h-9 w-auto" /></a>
     </div>
     <h1 class="text-2xl font-bold text-slate-800 mb-2">Sign in</h1>
     <p class="text-slate-600 text-sm mb-6">Welcome back. Sign in with your email.</p>

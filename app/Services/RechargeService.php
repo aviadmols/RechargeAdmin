@@ -112,7 +112,8 @@ class RechargeService
     public function listOrders(string $customerId, array $params = []): array
     {
         $ttl = (int) (RechargeSettings::first()?->cache_ttl_orders ?? 120);
-        $key = "recharge.orders.{$customerId}." . md5(json_encode($params));
+        $version = $this->getCacheVersion("recharge.orders.{$customerId}.version");
+        $key = "recharge.orders.{$customerId}.v{$version}." . md5(json_encode($params));
 
         return Cache::remember($key, $ttl, function () use ($customerId, $params) {
             $query = array_merge(['customer_id' => $customerId, 'limit' => 50], $params);
@@ -166,7 +167,8 @@ class RechargeService
     public function listSubscriptions(string $customerId, array $params = []): array
     {
         $ttl = (int) (RechargeSettings::first()?->cache_ttl_subscriptions ?? 60);
-        $key = "recharge.subscriptions.{$customerId}." . md5(json_encode($params));
+        $version = $this->getCacheVersion("recharge.subscriptions.{$customerId}.version");
+        $key = "recharge.subscriptions.{$customerId}.v{$version}." . md5(json_encode($params));
 
         return Cache::remember($key, $ttl, function () use ($customerId, $params) {
             $query = array_merge(['customer_id' => $customerId, 'limit' => 250], $params);
@@ -211,8 +213,8 @@ class RechargeService
 
     public function invalidateCustomerCache(string $customerId): void
     {
-        Cache::forget("recharge.subscriptions.{$customerId}");
-        Cache::forget("recharge.orders.{$customerId}");
+        $this->incrementCacheVersion("recharge.subscriptions.{$customerId}.version");
+        $this->incrementCacheVersion("recharge.orders.{$customerId}.version");
         Cache::forget("recharge.customer.{$customerId}");
     }
 
@@ -417,8 +419,9 @@ class RechargeService
 
         if ($subscriptionId !== '') {
             $this->invalidateSubscriptionCache($subscriptionId, $customerId !== '' ? $customerId : null);
-        } elseif ($customerId !== '') {
-            Cache::forget("recharge.subscriptions.{$customerId}");
+        }
+        if ($customerId !== '') {
+            $this->invalidateCustomerCache($customerId);
         }
 
         return $data;
@@ -456,7 +459,7 @@ class RechargeService
         $onetime = $data['onetime'] ?? $data;
         $customerId = (string) ($onetime['customer_id'] ?? '');
         if ($customerId !== '') {
-            Cache::forget("recharge.subscriptions.{$customerId}");
+            $this->invalidateCustomerCache($customerId);
         }
 
         return $data;
@@ -488,7 +491,19 @@ class RechargeService
         Cache::forget("recharge.subscription.{$subscriptionId}");
 
         if ($customerId) {
-            Cache::forget("recharge.subscriptions.{$customerId}");
+            $this->incrementCacheVersion("recharge.subscriptions.{$customerId}.version");
         }
+    }
+
+    protected function getCacheVersion(string $versionKey): int
+    {
+        $v = Cache::get($versionKey, 0);
+        return is_numeric($v) ? (int) $v : 0;
+    }
+
+    protected function incrementCacheVersion(string $versionKey): void
+    {
+        $v = $this->getCacheVersion($versionKey);
+        Cache::put($versionKey, $v + 1, 86400 * 7); // keep version key 7 days
     }
 }
